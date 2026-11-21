@@ -77,6 +77,11 @@
   const orgLogoTag = (cls = "", style = "") =>
     orgLogoUrl ? `<img class="${cls}" style="${style}" src="${orgLogoUrl}" alt="${esc(C.ORG_NAME)}" onerror="this.remove()">` : "";
 
-  const VERSION = "2026.10.22b"; // keep in step with the ?v= on the <script>/<link> tags
-  window.P = { VERSION, sb, esc, logoUrl, floorplanUrl, safeUrl, boothSort, initials, applyTheme, toast, appBaseUrl, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, orgLogoUrl, orgLogoTag, C };
+  // White logo for dark / coloured backgrounds; falls back to the colour logo if no white one is configured
+  const orgLogoLightUrl = C.ORG_LOGO_LIGHT ? new URL(C.ORG_LOGO_LIGHT, location.href).href : orgLogoUrl;
+  const orgLogoLightTag = (cls = "", style = "") =>
+    orgLogoLightUrl ? `<img class="${cls}" style="${style}" src="${orgLogoLightUrl}" alt="${esc(C.ORG_NAME)}" onerror="this.remove()">` : "";
+
+  const VERSION = "2026.11.20a"; // keep in step with the ?v= on the <script>/<link> tags
+  window.P = { VERSION, sb, esc, logoUrl, floorplanUrl, safeUrl, boothSort, initials, applyTheme, toast, appBaseUrl, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, orgLogoUrl, orgLogoTag, orgLogoLightTag, C };
 })();

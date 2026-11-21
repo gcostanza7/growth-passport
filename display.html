@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=2026.10.22b">
+<link rel="stylesheet" href="styles.css?v=2026.11.20a">
 <style>
   html, body { height: 100%; }
   body { background: var(--brand); color: #fff; overflow: hidden; }
@@ -77,13 +77,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
-<script src="config.js?v=2026.10.22b"></script>
-<script src="common.js?v=2026.10.22b"></script>
+<script src="config.js?v=2026.11.20a"></script>
+<script src="common.js?v=2026.11.20a"></script>
 <script>
 (async function () {
   const { sb, esc, logoUrl, applyTheme, toast, joinUrl, qrSvg, fmtDate } = P;
   const $ = (id) => document.getElementById(id);
-  $("orgSlot").innerHTML = P.orgLogoTag("org-logo");
+  $("orgSlot").innerHTML = P.orgLogoLightTag("org-logo");
   const params = new URLSearchParams(location.search);
   const slug = (params.get("e") || "").toLowerCase();
   applyTheme(null);
