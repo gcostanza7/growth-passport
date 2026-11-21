@@ -17,16 +17,16 @@ Admins run everything from `admin.html`, and winners are drawn live on the big-s
 The database (Supabase project `events-passport`, Canada Central) is already set up with all tables,
 security rules and the `logos` storage bucket.
 
-## 0. Add the Simplicity
+## 0. Add the SimplicityCarCare logo
 
-Upload the logo to the repo as `assets/aia-canada-logo.png` (on GitHub: open the `assets` folder → **Add file → Upload files**). It appears on the attendee header, admin console, big screen, poster and QR cards. Until it's there, those spots are simply left blank.
+Upload the logo to the repo as `assets/simplicitycarcare-logo.png` (on GitHub: open the `assets` folder → **Add file → Upload files**). It appears on the attendee header, admin console, big screen, poster and QR cards. Until it's there, those spots are simply left blank.
 
 ## 1. Put it online (about 5 minutes)
 
 The pages must be served over **HTTPS** (phone cameras won't open otherwise). Any static host works:
 
 - **Netlify (easiest):** go to app.netlify.com/drop and drag this folder onto the page. You get a URL like
-  `https://your-name.netlify.app`. You can rename it or connect a custom domain such as `passport.aiacanada.com`.
+  `https://your-name.netlify.app`. You can rename it or connect a custom domain such as `passport.simplicitycarcare.com`.
 - **Your own web server:** upload all files together into one folder.
 
 Keep all files in the same folder — QR codes point to `index.html` beside `admin.html`.
@@ -78,7 +78,7 @@ Each report shows: attendees, active players, stamps, draw qualifiers, completio
 - **Summary CSV** — one row per event plus a combined total
 - **Booths CSV** — booth traffic and reach
 - **Attendees CSV** — every attendee in the selected events with the booths they visited
-- **Print / Save PDF** — a clean print layout with the AIA Canada logo; choose "Save as PDF" in the print dialog
+- **Print / Save PDF** — a clean print layout with the SimplicityCarCare logo; choose "Save as PDF" in the print dialog
 
 All counting happens in the database, so reports stay accurate for large events.
 

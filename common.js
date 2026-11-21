@@ -72,7 +72,7 @@
     return new Date(d.length === 10 ? d + "T12:00:00" : d).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" });
   }
 
-  // AIA Canada logo: absolute URL (works inside print windows too) and an <img> that removes itself if the file is missing
+  // SimplicityCarCare logo: absolute URL (works inside print windows too) and an <img> that removes itself if the file is missing
   const orgLogoUrl = C.ORG_LOGO ? new URL(C.ORG_LOGO, location.href).href : "";
   const orgLogoTag = (cls = "", style = "") =>
     orgLogoUrl ? `<img class="${cls}" style="${style}" src="${orgLogoUrl}" alt="${esc(C.ORG_NAME)}" onerror="this.remove()">` : "";
