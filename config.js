@@ -9,6 +9,6 @@ window.PASSPORT_CONFIG = {
   DEFAULT_ACCENT: "#fd761e",
   ORG_NAME: "SimplicityCarCare",
   // SimplicityCarCare logo shown across the app (attendee header, admin, big screen, printouts).
-  // Put the file at this path in the repo. A full-colour logo works best — it sits on a white chip.
+  // Put the file at this path in the repo. This orange-on-transparent logo is shown directly on dark backgrounds (no white chip).
   ORG_LOGO: "assets/simplicitycarcare-logo.png",
 };

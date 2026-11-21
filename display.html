@@ -16,6 +16,7 @@
   .main, .side { position: relative; z-index: 1; min-height: 0; }
   .head { display: flex; align-items: center; gap: 1.6vw; margin-bottom: 2.5vh; }
   .head img { height: 8vh; max-width: 18vw; object-fit: contain; background: #fff; border-radius: 10px; padding: 6px 10px; }
+  .head img.org-logo { background: none; padding: 0; border-radius: 0; }
   .head h1 { font-size: clamp(24px, 3.4vw, 64px); font-weight: 900; margin: 0; }
   .head .sub { font-size: clamp(14px, 1.3vw, 24px); opacity: .8; font-weight: 600; }
   .board { display: flex; flex-direction: column; gap: 1.1vh; }
@@ -82,7 +83,7 @@
 (async function () {
   const { sb, esc, logoUrl, applyTheme, toast, joinUrl, qrSvg, fmtDate } = P;
   const $ = (id) => document.getElementById(id);
-  $("orgSlot").innerHTML = P.orgLogoTag();
+  $("orgSlot").innerHTML = P.orgLogoTag("org-logo");
   const params = new URLSearchParams(location.search);
   const slug = (params.get("e") || "").toLowerCase();
   applyTheme(null);
