@@ -1,0 +1,1430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event Passport · Admin</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=2026.10.22b">
+<style>
+  .auth { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--brand); }
+  .auth .card { width: min(420px, 100%); padding: 28px; }
+  .auth h1 { font-size: 1.4rem; }
+  .brandmark { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--brand); margin-bottom: 18px; }
+  .brandmark .orgmark { height: 34px; width: auto; max-width: 150px; object-fit: contain; background: #fff; border-radius: 7px; padding: 3px 7px; }
+  .brandmark i { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: #fff; font-style: normal; font-size: 16px; }
+
+  .topbar { background: var(--brand); color: #fff; padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; position: sticky; top: 0; z-index: 50; }
+  .topbar .brandmark { color: #fff; margin: 0; }
+  .topbar select { width: auto; min-width: 200px; max-width: 100%; padding: 8px 10px; background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.25); }
+  .topbar select option { color: var(--ink); }
+  .topbar .btn.ghost { color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35); }
+  .topbar .who { margin-left: auto; font-size: .85rem; opacity: .85; }
+
+  .shell { display: grid; grid-template-columns: 210px 1fr; min-height: calc(100vh - 58px); }
+  nav.side { background: #fff; border-right: 1px solid var(--line); padding: 14px 10px; }
+  nav.side button { display: flex; width: 100%; align-items: center; gap: 10px; background: none; border: 0; text-align: left; padding: 10px 12px; border-radius: 9px;
+    font: 600 .95rem var(--font); color: var(--muted); cursor: pointer; margin-bottom: 2px; }
+  nav.side button:hover { background: var(--bg); color: var(--ink); }
+  nav.side button[aria-current=page] { background: color-mix(in srgb, var(--brand) 10%, #fff); color: var(--brand); }
+  .content { padding: 22px; max-width: 1180px; width: 100%; }
+  .pagehead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pagehead h1 { font-size: 1.45rem; margin: 0; }
+  .pagehead .actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi b { display: block; font-size: 2rem; font-weight: 800; color: var(--brand); line-height: 1.1; }
+  .kpi span { font-size: .8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .hbar { display: grid; grid-template-columns: minmax(120px, 220px) 1fr 44px; gap: 10px; align-items: center; margin: 8px 0; font-size: .9rem; }
+  .hbar .t { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .hbar .t i { display: block; height: 100%; background: var(--brand); border-radius: 99px; }
+  .hbar .n { text-align: right; font-weight: 700; }
+  .grid2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+
+  .thumb { width: 44px; height: 44px; border-radius: 50%; object-fit: contain; background: #fff; border: 1px solid var(--line); padding: 4px; }
+  .thumb.logo-ph { padding: 0; font-size: .85rem; }
+  .logo-edit { display: flex; gap: 14px; align-items: center; }
+  .logo-edit .prev { width: 84px; height: 84px; border-radius: 50%; border: 1.5px dashed var(--line); display: grid; place-items: center; overflow: hidden; background: #fff; flex: none; }
+  .logo-edit .prev img { width: 78%; height: 78%; object-fit: contain; }
+  .logo-edit.rect .prev { border-radius: 10px; width: 150px; }
+  .qrbox { background: #fff; padding: 12px; border-radius: 12px; border: 1px solid var(--line); width: 220px; margin: 0 auto; }
+  .qrbox svg { width: 100%; height: auto; display: block; }
+  .code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .85rem; background: var(--bg); padding: 2px 6px; border-radius: 6px; word-break: break-all; }
+  .stamp-toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-height: 260px; overflow: auto; padding: 4px; }
+  .stamp-toggles label { font-weight: 500; display: flex; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; background: var(--bg); margin: 0; font-size: .88rem; }
+  .empty { text-align: center; padding: 36px 16px; color: var(--muted); }
+  .colorpair { display: flex; gap: 10px; }
+  .colorpair input[type=color] { width: 54px; height: 44px; padding: 3px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; }
+  .section-title { font-size: 1rem; margin: 22px 0 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+
+  /* ----- floor plan ----- */
+  .fp-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+  .fp-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .fp-tools .zb { width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--line); background: #fff; font: 700 1.1rem var(--font); color: var(--brand); cursor: pointer; }
+  .fp-hint { font-size: .85rem; color: var(--muted); }
+  .fp-hint b { color: var(--ink); }
+  .fp-view { overflow: auto; max-height: 72vh; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .fp-inner { position: relative; min-width: 100%; }
+  .fp-inner img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+  .fp-inner.placing { cursor: crosshair; }
+  .pin { position: absolute; transform: translate(-50%, -50%); min-width: 28px; height: 28px; padding: 0 7px; border-radius: 14px; border: 2px solid #fff;
+    background: var(--brand); color: #fff; font: 800 .72rem/24px var(--font); box-shadow: 0 2px 6px rgba(0,0,0,.3); cursor: grab; touch-action: none; white-space: nowrap; }
+  .pin.sel { background: var(--accent); z-index: 3; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent), 0 2px 6px rgba(0,0,0,.3); }
+  .pin.dragging { cursor: grabbing; }
+  .fp-list { max-height: 72vh; overflow: auto; margin: 0 -6px; }
+  .fp-list button { display: flex; width: 100%; gap: 8px; align-items: center; text-align: left; background: none; border: 0; border-radius: 8px; padding: 8px 6px; font: 500 .9rem var(--font); color: var(--ink); cursor: pointer; }
+  .fp-list button:hover { background: var(--bg); }
+  .fp-list button[aria-pressed=true] { background: color-mix(in srgb, var(--accent) 10%, #fff); box-shadow: inset 3px 0 0 var(--accent); }
+  .fp-list .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 960px) { .fp-grid { grid-template-columns: 1fr; } .fp-list { max-height: 320px; } }
+
+  /* ----- reports ----- */
+  .rpt-filter { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .picker { position: relative; }
+  .picker .pop { position: absolute; z-index: 60; top: calc(100% + 6px); left: 0; width: min(460px, calc(100vw - 32px)); background: #fff;
+    border-radius: 12px; box-shadow: 0 12px 40px rgba(16,32,48,.2); padding: 14px; }
+  .picker .quick { gap: 6px; margin: 10px 0; }
+  .picker .quick button { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 5px 11px; font: 600 .8rem var(--font); color: var(--brand); cursor: pointer; }
+  .picker .quick button:hover { background: var(--bg); }
+  .picker .evlist { max-height: 300px; overflow: auto; margin: 8px 0 12px; border-top: 1px solid var(--line); }
+  .picker .evlist label { padding: 9px 4px; border-bottom: 1px solid var(--line); margin: 0; font-size: .9rem; }
+  .rpt-head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 14px; }
+  .rpt-head h2 { font-size: 1.3rem; margin: 0 0 4px; }
+  .rpt-sec { margin-top: 16px; }
+  .rpt-sec > h2 { font-size: 1.05rem; margin: 0 0 2px; }
+  .rpt-sec > .sub { font-size: .85rem; color: var(--muted); margin: 0 0 14px; }
+  .kpi small { display: block; font-size: .8rem; color: var(--muted); margin-top: 6px; font-weight: 500; line-height: 1.3; }
+  .bars { display: grid; grid-template-columns: minmax(110px, 240px) 1fr auto; gap: 4px 12px; align-items: center; }
+  .bars .lbl { font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bars .trk { height: 26px; display: flex; align-items: center; outline: none; border-radius: 4px; }
+  .bars .trk:hover, .bars .trk:focus-visible { background: color-mix(in srgb, var(--brand) 5%, transparent); }
+  .bars .trk b { display: block; height: 18px; background: var(--brand); border-radius: 0 4px 4px 0; }
+  .bars .val { font-size: .88rem; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .bars .val span { color: var(--muted); margin-left: 6px; }
+  .colchart { display: grid; grid-template-columns: 44px 1fr; padding-bottom: 26px; }
+  .colchart .yax { position: relative; height: var(--h); }
+  .colchart .yax span { position: absolute; right: 8px; transform: translateY(50%); font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .colchart .plot { position: relative; height: var(--h); border-bottom: 1px solid #C9D1DB; }
+  .colchart .gl { position: absolute; left: 0; right: 0; height: 1px; background: #EDF1F5; }
+  .colchart .cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 2px; }
+  .colchart .col { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; position: relative; outline: none; }
+  .colchart .col b { display: block; width: min(24px, 80%); background: var(--brand); border-radius: 4px 4px 0 0; }
+  .colchart .col:hover, .colchart .col:focus-visible { background: color-mix(in srgb, var(--brand) 6%, transparent); }
+  .colchart .col:hover b, .colchart .col:focus-visible b { background: color-mix(in srgb, var(--brand) 78%, #fff); }
+  .colchart .xl { position: absolute; top: calc(100% + 6px); font-size: .72rem; color: var(--muted); white-space: nowrap; }
+  #vizTip { position: fixed; z-index: 900; pointer-events: none; background: #fff; border-radius: 8px; box-shadow: 0 6px 24px rgba(16,32,48,.2); padding: 8px 11px; font-size: .82rem; min-width: 130px; }
+  #vizTip .th { color: var(--muted); font-size: .76rem; margin-bottom: 4px; }
+  #vizTip .tr { display: flex; gap: 8px; align-items: baseline; }
+  #vizTip .tr i { width: 12px; height: 2px; background: var(--brand); align-self: center; flex: none; }
+  #vizTip .tr b { font-size: .95rem; }
+  #vizTip .tr span { color: var(--muted); }
+  .rpt-sec details summary { cursor: pointer; font-size: .82rem; color: var(--brand); font-weight: 600; margin-top: 10px; }
+  table.data tr.total td { font-weight: 800; border-top: 2px solid var(--line); background: #FAFBFC; }
+  table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .print-only { display: none; }
+  @media print {
+    body { background: #fff; }
+    .topbar, nav.side, .no-print, #toast, #vizTip, .rpt-sec details { display: none !important; }
+    .shell { display: block; min-height: 0; }
+    .content { padding: 0; max-width: none; }
+    .card { box-shadow: none; border: 1px solid var(--line); break-inside: avoid; }
+    .card.tbl { break-inside: auto; }
+    .print-only { display: block; }
+    .grid2 { grid-template-columns: 1fr 1fr; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    nav.side { display: flex; overflow-x: auto; gap: 4px; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); position: sticky; top: 58px; z-index: 40; }
+    nav.side button { width: auto; white-space: nowrap; margin: 0; }
+    .content { padding: 16px; }
+    .grid2 { grid-template-columns: 1fr; }
+    .topbar .who { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== sign-in ===== -->
+<div id="authView" class="auth hidden">
+  <div class="card">
+    <div class="brandmark"><i>✓</i>Event Passport</div>
+    <div id="signInBox">
+      <h1>Admin sign in</h1>
+      <form id="signInForm">
+        <div class="field"><label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password" required></div>
+        <button class="btn block" type="submit">Sign in</button>
+      </form>
+      <p class="small" style="margin-top:14px;display:flex;justify-content:space-between">
+        <button class="linkbtn" id="toSignUp" type="button">Create an admin account</button>
+        <button class="linkbtn" id="forgot" type="button">Forgot password?</button></p>
+    </div>
+    <div id="signUpBox" class="hidden">
+      <h1>Create admin account</h1>
+      <p class="muted small">Use the email address an existing admin invited. (The very first account created becomes the owner.)</p>
+      <form id="signUpForm">
+        <div class="field"><label for="uEmail">Email</label><input id="uEmail" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="uPass">Password</label><input id="uPass" type="password" autocomplete="new-password" minlength="8" required><div class="hint">At least 8 characters.</div></div>
+        <button class="btn block" type="submit">Create account</button>
+      </form>
+      <p class="small" style="margin-top:14px"><button class="linkbtn" id="toSignIn" type="button">Back to sign in</button></p>
+    </div>
+    <div id="resetBox" class="hidden">
+      <h1>Set a new password</h1>
+      <form id="resetForm">
+        <div class="field"><label for="nPass">New password</label><input id="nPass" type="password" autocomplete="new-password" minlength="8" required></div>
+        <button class="btn block" type="submit">Save password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="notAdmin" class="auth hidden"><div class="card"><div class="brandmark"><i>✓</i>Event Passport</div>
+  <h1>No admin access yet</h1><p class="muted">You're signed in as <b id="naEmail"></b>, but this account isn't an admin. Ask an existing admin to add this email under Admin users, then refresh this page.</p>
+  <button class="btn" onclick="location.reload()" type="button">Refresh</button>
+  <button class="btn ghost" id="naOut" type="button">Sign out</button></div></div>
+
+<!-- ===== app ===== -->
+<div id="appView" class="hidden">
+  <header class="topbar">
+    <div class="brandmark"><i>✓</i>Passport Admin</div>
+    <select id="evSelect" aria-label="Current event"></select>
+    <button class="btn sm ghost" id="newEventBtn" type="button">+ New event</button>
+    <span class="who" id="who"></span>
+    <button class="btn sm ghost" id="signOutBtn" type="button">Sign out</button>
+  </header>
+  <div class="shell">
+    <nav class="side" id="nav">
+      <button data-page="events">🗂️ All events</button>
+      <button data-page="dashboard" aria-current="page">📊 Dashboard</button>
+      <button data-page="booths">🏷️ Booths & QR codes</button>
+      <button data-page="floorplan">🗺️ Floor plan</button>
+      <button data-page="attendees">👥 Attendees</button>
+      <button data-page="winners">🏆 Winners</button>
+      <button data-page="reports">📈 Reports</button>
+      <button data-page="settings">⚙️ Event settings</button>
+      <button data-page="admins">🔐 Admin users</button>
+    </nav>
+    <main class="content" id="page"></main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="config.js?v=2026.10.22b"></script>
+<script src="common.js?v=2026.10.22b"></script>
+<script>
+(async function () {
+  const { sb, esc, logoUrl, floorplanUrl, safeUrl, boothSort, initials, applyTheme, toast, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, appBaseUrl } = P;
+  const $ = (id) => document.getElementById(id);
+  document.querySelectorAll(".brandmark").forEach((b) => {
+    if (!P.orgLogoUrl) return;
+    const img = new Image(); img.className = "orgmark"; img.alt = P.C.ORG_NAME;
+    img.onload = () => { const i = b.querySelector("i"); if (i) i.replaceWith(img); };
+    img.src = P.orgLogoUrl;
+  });
+  let me = null, myRole = null, events = [], ev = null, page = "dashboard";
+
+  applyTheme(null);
+
+  // ---------- generic helpers ----------
+  function modal(html, opts = {}) {
+    const bg = document.createElement("div");
+    bg.className = "modal-bg";
+    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true" style="${opts.wide ? "width:min(760px,100%)" : ""}">${html}</div>`;
+    document.body.appendChild(bg);
+    const close = () => bg.remove();
+    bg.addEventListener("click", (e) => { if (e.target === bg) close(); });
+    bg.querySelectorAll("[data-close]").forEach((b) => (b.onclick = close));
+    const f = bg.querySelector("input,select,textarea"); if (f) setTimeout(() => f.focus(), 30);
+    return { el: bg.querySelector(".modal"), close };
+  }
+  const val = (root, sel) => root.querySelector(sel).value.trim();
+  const slugify = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  const randCode = () => Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => b.toString(16).padStart(2, "0")).join("");
+  const logoTag = (path, name, cls = "thumb") => path ? `<img class="${cls}" src="${logoUrl(path)}" alt="">` : `<div class="${cls} logo-ph" style="border-radius:50%">${esc(initials(name))}</div>`;
+  function fail(error, msg = "Something went wrong") { console.error(error); toast(`${msg}: ${error.message || error}`, "err"); }
+
+  async function uploadLogo(file, folder) {
+    if (!file) return null;
+    if (file.size > 2 * 1024 * 1024) { toast("Logo must be under 2 MB.", "err"); return null; }
+    const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await sb.storage.from("logos").upload(path, file, { contentType: file.type, upsert: false });
+    if (error) { fail(error, "Upload failed"); return null; }
+    return path;
+  }
+  async function removeLogo(path) { if (path) await sb.storage.from("logos").remove([path]); }
+
+  function wireLogoInput(root, current) {
+    const input = root.querySelector("input[type=file]"), prev = root.querySelector(".prev");
+    let removed = false;
+    input.onchange = () => {
+      const f = input.files[0];
+      if (f) { prev.innerHTML = `<img src="${URL.createObjectURL(f)}" alt="">`; removed = false; }
+    };
+    const rm = root.querySelector("[data-rmlogo]");
+    if (rm) rm.onclick = () => { input.value = ""; prev.innerHTML = '<span class="small muted">No logo</span>'; removed = true; };
+    return { file: () => input.files[0], removed: () => removed };
+  }
+  const logoField = (path, label, rect) => `<div class="field"><label>${label}</label><div class="logo-edit ${rect ? "rect" : ""}">
+    <div class="prev">${path ? `<img src="${logoUrl(path)}" alt="">` : '<span class="small muted">No logo</span>'}</div>
+    <div><input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif">
+    <div class="hint">PNG with transparent background works best. Square, max 2 MB.</div>
+    ${path ? '<button type="button" class="linkbtn small" data-rmlogo>Remove logo</button>' : ""}</div></div></div>`;
+
+  function downloadFile(name, content, type) {
+    const a = document.createElement("a");
+    a.href = typeof content === "string" && content.startsWith("data:") ? content : URL.createObjectURL(new Blob([content], { type }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }
+  const csvCell = (v) => { v = String(v ?? ""); if (/^[=+\-@]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+
+  // ---------- auth ----------
+  const showOnly = (id) => ["authView", "notAdmin", "appView"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
+  const authPane = (id) => ["signInBox", "signUpBox", "resetBox"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
+  $("toSignUp").onclick = () => authPane("signUpBox");
+  $("toSignIn").onclick = () => authPane("signInBox");
+
+  $("signInForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const { error } = await sb.auth.signInWithPassword({ email: $("aEmail").value.trim(), password: $("aPass").value });
+    if (error) toast(error.message, "err");
+  };
+  $("signUpForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const { data, error } = await sb.auth.signUp({ email: $("uEmail").value.trim(), password: $("uPass").value,
+      options: { emailRedirectTo: location.href.split("#")[0] } });
+    if (error) return toast(error.message, "err");
+    if (!data.session) { toast("Check your email to confirm your account, then sign in.", "ok"); authPane("signInBox"); }
+  };
+  $("forgot").onclick = async () => {
+    const email = $("aEmail").value.trim() || prompt("Your admin email:");
+    if (!email) return;
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split("#")[0] });
+    toast(error ? error.message : "If that account exists, a reset link is on its way.", error ? "err" : "ok");
+  };
+  $("resetForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const { error } = await sb.auth.updateUser({ password: $("nPass").value });
+    if (error) return toast(error.message, "err");
+    toast("Password updated.", "ok"); boot();
+  };
+  const signOut = async () => { await sb.auth.signOut(); location.reload(); };
+  $("signOutBtn").onclick = signOut; $("naOut").onclick = signOut;
+
+  let recovering = false;
+  sb.auth.onAuthStateChange((event) => {
+    if (event === "PASSWORD_RECOVERY") { recovering = true; showOnly("authView"); authPane("resetBox"); }
+    if (event === "SIGNED_IN" && !recovering && !me) boot();
+  });
+
+  async function boot() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { showOnly("authView"); authPane("signInBox"); return; }
+    if (recovering) return;
+    me = session.user;
+    const { data: adm } = await sb.from("admins").select("role").eq("user_id", me.id).maybeSingle();
+    if (!adm) { $("naEmail").textContent = me.email; showOnly("notAdmin"); return; }
+    myRole = adm.role;
+    $("who").textContent = me.email;
+    showOnly("appView");
+    await loadEvents();
+  }
+
+  // ---------- event status ----------
+  const STATUS = {
+    ready: { label: "Ready to launch", pill: "brand", help: "Hidden from attendees. Set up booths and print QR codes." },
+    active: { label: "Live", pill: "ok", help: "Attendees can register and collect stamps." },
+    paused: { label: "Paused", pill: "accent", help: "Attendees can see their passport and the leaderboard, but sign-up and scanning are off." },
+    completed: { label: "Completed", pill: "", help: "Final results. Passports and leaderboard stay visible; no new sign-ups or stamps." },
+    archived: { label: "Archived", pill: "", help: "Hidden from attendees and moved out of your event list. Data is kept." },
+  };
+  const statusPill = (s) => `<span class="pill ${STATUS[s].pill}">${STATUS[s].label}</span>`;
+  const statusOptions = (cur) => Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === cur ? "selected" : ""}>${v.label}</option>`).join("");
+
+  async function setStatus(e, status) {
+    if (status === e.status) return;
+    const warn = {
+      active: `Go live with "${e.name}"? Attendees will be able to register and collect stamps.`,
+      paused: `Pause "${e.name}"? Sign-up and scanning stop until you set it back to Live.`,
+      completed: `Mark "${e.name}" as completed? No more sign-ups or stamps; results stay visible.`,
+      archived: `Archive "${e.name}"? It will be hidden from attendees and from your event list. You can restore it from All events.`,
+      ready: `Set "${e.name}" back to Ready to launch? Attendees won't be able to open it.`,
+    }[status];
+    if (!confirm(warn)) return false;
+    const { error } = await sb.from("events").update({ status }).eq("id", e.id);
+    if (error) { fail(error, "Couldn't change status"); return false; }
+    toast(`${e.name}: ${STATUS[status].label}`, "ok");
+    return true;
+  }
+
+  async function deleteEvent(e) {
+    const typed = prompt(`This permanently deletes "${e.name}" with all its booths, attendees, stamps and winners.\n\nType the link name "${e.slug}" to confirm:`);
+    if (typed === null) return false;
+    if (typed.trim() !== e.slug) { toast("Name didn't match — nothing deleted.", "err"); return false; }
+    const { data: bl } = await sb.from("booths").select("logo_path").eq("event_id", e.id);
+    const { error } = await sb.from("events").delete().eq("id", e.id);
+    if (error) { fail(error); return false; }
+    const paths = [e.logo_path, ...(bl || []).map((b) => b.logo_path)].filter(Boolean);
+    if (paths.length) await sb.storage.from("logos").remove(paths);
+    if (localStorage.getItem("passport-admin-event") === e.id) localStorage.removeItem("passport-admin-event");
+    toast("Event deleted.", "ok");
+    return true;
+  }
+
+  // ---------- events ----------
+  async function loadEvents(selectId) {
+    const { data, error } = await sb.from("events").select("*").order("created_at", { ascending: false });
+    if (error) return fail(error);
+    events = data;
+    const want = selectId || localStorage.getItem("passport-admin-event");
+    const visible = events.filter((e) => e.status !== "archived");
+    ev = events.find((e) => e.id === want) || visible[0] || null;
+    const listed = ev && ev.status === "archived" ? [ev, ...visible] : visible;
+    $("evSelect").innerHTML = listed.map((e) => `<option value="${e.id}">${esc(e.name)} · ${STATUS[e.status].label}</option>`).join("") || "<option>No events yet</option>";
+    if (ev) { $("evSelect").value = ev.id; localStorage.setItem("passport-admin-event", ev.id); }
+    applyTheme(ev);
+    render();
+  }
+  $("evSelect").onchange = () => loadEvents($("evSelect").value);
+  $("newEventBtn").onclick = () => eventModal(null);
+
+  document.querySelectorAll("#nav button").forEach((b) => (b.onclick = () => { page = b.dataset.page; render(); }));
+
+  function render() {
+    document.querySelectorAll("#nav button").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === page));
+    document.querySelectorAll("#nav button").forEach((b) => b.dataset.page === page && b.setAttribute("aria-current", "page"));
+    if (!ev && !["admins", "events", "reports"].includes(page)) {
+      $("page").innerHTML = `<div class="card empty"><h2>Create your first event</h2><p>Events hold booths, attendees and winners.</p>
+        <button class="btn accent" id="firstEv" type="button">+ New event</button></div>`;
+      $("firstEv").onclick = () => eventModal(null);
+      return;
+    }
+    const show = ({ events: pEvents, dashboard: pDashboard, booths: pBooths, floorplan: pFloorplan, attendees: pAttendees, winners: pWinners, reports: pReports, settings: pSettings, admins: pAdmins })[page];
+    // never leave a page stuck on "Loading…": show what went wrong and a way out
+    Promise.resolve().then(show).catch((err) => {
+      console.error(err);
+      $("page").innerHTML = `<div class="card empty"><h2>This page couldn't load</h2><p class="muted">${esc((err && err.message) || err)}</p>
+        <p class="small muted">If you just updated the app, a refresh usually fixes this.</p><button class="btn" type="button" onclick="location.reload()">Reload page</button></div>`;
+    });
+  }
+
+  // ---------- event create / edit ----------
+  function eventForm(e) {
+    const isNew = !e;
+    e = e || { primary_color: P.C.DEFAULT_BRAND, accent_color: P.C.DEFAULT_ACCENT, min_stamps_to_qualify: 1, show_leaderboard: true, registration_open: true, status: "ready" };
+    return `
+      <div class="field"><label for="eName">Event name</label><input id="eName" type="text" maxlength="120" value="${esc(e.name)}" required></div>
+      <div class="field"><label for="eSlug">Link name</label><input id="eSlug" type="text" maxlength="60" value="${esc(e.slug)}" pattern="[a-z0-9][a-z0-9\\-]{1,59}" required>
+        <div class="hint">Lowercase letters, numbers and dashes. Appears in the attendee link: <span class="code" id="slugPrev"></span></div></div>
+      <div class="row wrap"><div class="field grow"><label for="eStart">Start date</label><input id="eStart" type="date" value="${esc(e.starts_on)}"></div>
+        <div class="field grow"><label for="eEnd">End date</label><input id="eEnd" type="date" value="${esc(e.ends_on)}"></div></div>
+      <div class="field"><label for="eVenue">Venue</label><input id="eVenue" type="text" value="${esc(e.venue)}"></div>
+      <div class="field"><label for="eWelcome">Welcome message</label><textarea id="eWelcome" placeholder="Visit booths, answer a question and scan their code to collect stamps.">${esc(e.welcome_text)}</textarea></div>
+      <div class="field"><label for="ePrize">Prize</label><input id="ePrize" type="text" value="${esc(e.prize_text)}" placeholder="e.g. a $100 gift card"></div>
+      <div class="field"><label for="eMin">Stamps needed to enter the draw</label><input id="eMin" type="number" min="0" value="${e.min_stamps_to_qualify}" style="max-width:140px"></div>
+      <div class="field"><label>Colours</label><div class="colorpair">
+        <div><input id="eBrand" type="color" value="${esc(e.primary_color)}" aria-label="Primary colour"><div class="hint">Primary</div></div>
+        <div><input id="eAccent" type="color" value="${esc(e.accent_color)}" aria-label="Accent colour"><div class="hint">Accent</div></div></div></div>
+      ${logoField(e.logo_path, "Event logo", true)}
+      ${isNew ? `<div class="field"><label for="eStatus">Status</label><select id="eStatus" style="max-width:260px">${statusOptions("ready")}</select>
+        <div class="hint">Start as “Ready to launch” while you set up booths, then go Live on the day.</div></div>` : ""}
+      <div class="field stack">
+        <label class="check"><input id="eReg" type="checkbox" ${e.registration_open ? "checked" : ""}> Allow new sign-ups while live</label>
+        <label class="check"><input id="eBoard" type="checkbox" ${e.show_leaderboard ? "checked" : ""}> Show leaderboard to attendees</label>
+        <label class="check"><input id="ePreview" type="checkbox" ${e.preview_vendors !== false ? "checked" : ""}> Show the floor plan and vendor list before launch (on the “Opening soon” page)</label>
+      </div>`;
+  }
+  function readEventForm(root) {
+    const st = root.querySelector("#eStatus");
+    return {
+      ...(st ? { status: st.value } : {}),
+      name: val(root, "#eName"), slug: slugify(val(root, "#eSlug")), starts_on: val(root, "#eStart") || null, ends_on: val(root, "#eEnd") || null,
+      venue: val(root, "#eVenue") || null, welcome_text: val(root, "#eWelcome") || null, prize_text: val(root, "#ePrize") || null,
+      min_stamps_to_qualify: Math.max(0, parseInt(val(root, "#eMin")) || 0),
+      primary_color: val(root, "#eBrand"), accent_color: val(root, "#eAccent"),
+      registration_open: root.querySelector("#eReg").checked, show_leaderboard: root.querySelector("#eBoard").checked, preview_vendors: root.querySelector("#ePreview").checked,
+    };
+  }
+  function wireSlug(root, isNew) {
+    const n = root.querySelector("#eName"), s = root.querySelector("#eSlug"), p = root.querySelector("#slugPrev");
+    let touched = !isNew;
+    const upd = () => (p.textContent = joinUrl(slugify(s.value) || "your-event"));
+    n.oninput = () => { if (!touched) s.value = slugify(n.value); upd(); };
+    s.oninput = () => { touched = true; upd(); };
+    upd();
+  }
+  async function saveEvent(root, existing, logo) {
+    const row = readEventForm(root);
+    if (!row.name || row.slug.length < 2) return toast("Enter an event name and link name.", "err"), null;
+    if (logo.file()) { const p = await uploadLogo(logo.file(), "events"); if (!p) return null; row.logo_path = p; if (existing) await removeLogo(existing.logo_path); }
+    else if (logo.removed()) { row.logo_path = null; if (existing) await removeLogo(existing.logo_path); }
+    const q = existing ? sb.from("events").update(row).eq("id", existing.id).select().single() : sb.from("events").insert(row).select().single();
+    const { data, error } = await q;
+    if (error) return fail(error, error.code === "23505" ? "That link name is already used" : "Couldn't save event"), null;
+    return data;
+  }
+  function eventModal(existing) {
+    const m = modal(`<h2>${existing ? "Edit event" : "New event"}</h2><form id="evForm">${eventForm(existing)}
+      <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn" type="submit">Save event</button></div></form>`);
+    wireSlug(m.el, !existing);
+    const logo = wireLogoInput(m.el.querySelector(".logo-edit"), existing && existing.logo_path);
+    m.el.querySelector("#evForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = e.submitter; btn.disabled = true;
+      const saved = await saveEvent(m.el, existing, logo);
+      btn.disabled = false;
+      if (saved) { m.close(); toast("Event saved.", "ok"); if (!existing) page = "booths"; loadEvents(saved.id); }
+    };
+  }
+
+  // ---------- data helpers ----------
+  // Supabase returns at most 1,000 rows per request, so page through everything.
+  // `build` must return a fresh query with a unique final sort key (e.g. id) so pages don't overlap.
+  async function fetchAll(build, pageSize = 1000) {
+    const out = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await build().range(from, from + pageSize - 1);
+      if (error) { fail(error); return out; }
+      out.push(...data);
+      if (data.length < pageSize) return out;
+    }
+  }
+  async function fetchBooths() {
+    const { data, error } = await sb.from("booths").select("*").eq("event_id", ev.id).order("sort_order").order("name");
+    if (error) fail(error);
+    return data || [];
+  }
+  function fetchScores() {
+    return fetchAll(() => sb.from("attendee_scores").select("*").eq("event_id", ev.id)
+      .order("points", { ascending: false }).order("created_at").order("id"));
+  }
+  async function fetchStampCounts() {
+    const rows = await fetchAll(() => sb.from("stamps").select("booth_id").eq("event_id", ev.id).order("id"));
+    const m = {}; rows.forEach((s) => (m[s.booth_id] = (m[s.booth_id] || 0) + 1));
+    return m;
+  }
+
+  // ---------- dashboard ----------
+  async function pDashboard() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const [booths, scores, counts, winners] = await Promise.all([fetchBooths(), fetchScores(), fetchStampCounts(),
+      sb.from("winners").select("id", { count: "exact", head: true }).eq("event_id", ev.id)]);
+    const totalStamps = Object.values(counts).reduce((a, b) => a + b, 0);
+    const qualified = scores.filter((s) => s.stamp_count >= ev.min_stamps_to_qualify && s.stamp_count > 0).length;
+    const completed = booths.length ? scores.filter((s) => s.stamp_count >= booths.filter((b) => b.is_active).length).length : 0;
+    const max = Math.max(1, ...Object.values(counts));
+    const ranked = [...booths].sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>${esc(ev.name)}</h1>
+        ${statusPill(ev.status)}
+        <div class="actions"><a class="btn ghost sm" href="${esc(joinUrl(ev.slug))}" target="_blank" rel="noopener">Open attendee app ↗</a>
+        <a class="btn sm accent" href="display.html?e=${encodeURIComponent(ev.slug)}" target="_blank" rel="noopener">Leaderboard & draw screen ↗</a></div></div>
+      ${statusCard()}
+      <div class="kpis">
+        <div class="card kpi"><b>${scores.length}</b><span>Attendees</span></div>
+        <div class="card kpi"><b>${totalStamps}</b><span>Stamps collected</span></div>
+        <div class="card kpi"><b>${qualified}</b><span>Qualified for draw</span></div>
+        <div class="card kpi"><b>${completed}</b><span>Visited every booth</span></div>
+        <div class="card kpi"><b>${winners.count || 0}</b><span>Winners drawn</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h2 style="font-size:1.05rem">Visits by booth</h2>
+          ${ranked.length ? ranked.map((b) => `<div class="hbar"><span>${esc(b.name)}</span><div class="t"><i style="width:${100 * (counts[b.id] || 0) / max}%"></i></div><span class="n">${counts[b.id] || 0}</span></div>`).join("")
+            : '<p class="muted">No booths yet. <button class="linkbtn" id="goBooths" type="button">Add booths</button></p>'}
+        </div>
+        <div class="card" style="text-align:center"><h2 style="font-size:1.05rem">Attendee sign-up QR</h2>
+          <p class="small muted">Put this on signage and the welcome desk.</p>
+          <div class="qrbox">${qrSvg(joinUrl(ev.slug))}</div>
+          <p class="small"><span class="code">${esc(joinUrl(ev.slug))}</span></p>
+          <div class="row" style="justify-content:center"><button class="btn sm ghost" id="dlJoin" type="button">Download PNG</button><button class="btn sm" id="printJoin" type="button">Print poster</button></div>
+        </div>
+      </div>`;
+    const gb = $("goBooths"); if (gb) gb.onclick = () => { page = "booths"; render(); };
+    wireStatusCard();
+    $("dlJoin").onclick = () => downloadFile(`${ev.slug}-join-qr.png`, qrDataUrl(joinUrl(ev.slug), 16));
+    $("printJoin").onclick = () => printPoster();
+  }
+
+  // ---------- status card (dashboard + settings) ----------
+  function statusCard() {
+    const next = { ready: ["active"], active: ["paused", "completed"], paused: ["active", "completed"], completed: ["active", "archived"], archived: ["ready"] }[ev.status];
+    const verb = { active: ev.status === "ready" ? "🚀 Go live" : "▶ Resume (go live)", paused: "⏸ Pause", completed: "🏁 Mark completed", archived: "🗄 Archive", ready: "↩ Restore (ready to launch)" };
+    return `<div class="card statuscard" style="margin-bottom:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div class="grow" style="min-width:220px"><div class="small muted" style="font-weight:700;text-transform:uppercase;letter-spacing:.05em">Event status</div>
+        <div style="margin-top:4px">${statusPill(ev.status)} <span class="small muted">${esc(STATUS[ev.status].help)}</span></div></div>
+      <div class="row wrap">${next.map((s, i) => `<button class="btn sm ${i === 0 ? "" : "ghost"}" data-setstatus="${s}" type="button">${verb[s]}</button>`).join("")}
+        <select id="statusAny" aria-label="Set any status" style="width:auto;padding:6px 8px;font-size:.88rem"><option value="">More…</option>${statusOptions("").replace(/ selected/g, "")}</select></div></div>`;
+  }
+  function wireStatusCard() {
+    const go = async (s) => { if (s && (await setStatus(ev, s))) loadEvents(ev.id); };
+    document.querySelectorAll("[data-setstatus]").forEach((b) => (b.onclick = () => go(b.dataset.setstatus)));
+    const any = $("statusAny"); if (any) any.onchange = () => { const s = any.value; any.value = ""; go(s); };
+  }
+
+  // ---------- all events ----------
+  async function pEvents() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const att = await fetchAll(() => sb.from("attendees").select("event_id").order("id"));
+    const n = {}; att.forEach((a) => (n[a.event_id] = (n[a.event_id] || 0) + 1));
+    const showArch = localStorage.getItem("passport-show-archived") === "1";
+    const list = events.filter((e) => showArch || e.status !== "archived");
+    const archCount = events.filter((e) => e.status === "archived").length;
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>All events</h1><div class="actions">
+        <label class="check small" style="margin:0"><input id="showArch" type="checkbox" ${showArch ? "checked" : ""}> Show archived (${archCount})</label>
+        <button class="btn sm accent" id="newEv2" type="button">+ New event</button></div></div>
+      ${list.length ? `<div class="card table-wrap"><table class="data"><thead><tr><th>Event</th><th>Date</th><th>Attendees</th><th>Status</th><th>Change status</th><th></th></tr></thead><tbody>
+        ${list.map((e) => `<tr ${e.id === (ev && ev.id) ? 'style="background:color-mix(in srgb,var(--brand) 5%,#fff)"' : ""}>
+          <td><b>${esc(e.name)}</b><div class="small muted">${esc(e.slug)}</div></td>
+          <td class="small">${esc(fmtDate(e.starts_on)) || "—"}</td><td>${n[e.id] || 0}</td>
+          <td>${statusPill(e.status)}</td>
+          <td><select data-evstatus="${e.id}" style="width:auto;padding:6px 8px;font-size:.88rem" aria-label="Status for ${esc(e.name)}">${statusOptions(e.status)}</select></td>
+          <td style="white-space:nowrap"><button class="btn sm ghost" data-open="${e.id}" type="button">Open</button>
+            ${e.status === "archived" ? `<button class="btn sm ghost" data-restore="${e.id}" type="button">Restore</button>` : `<button class="btn sm ghost" data-archive="${e.id}" type="button">Archive</button>`}
+            <button class="btn sm danger" data-delev="${e.id}" type="button">Delete</button></td></tr>`).join("")}</tbody></table></div>
+        <p class="small muted" style="margin-top:10px">${Object.values(STATUS).map((s) => `<b>${s.label}:</b> ${esc(s.help)}`).join("<br>")}</p>`
+        : `<div class="card empty"><h2>No events${archCount && !showArch ? " (archived events hidden)" : ""}</h2><button class="btn accent" id="newEv3" type="button">+ New event</button></div>`}`;
+    const byId = (id) => events.find((e) => e.id === id);
+    $("showArch").onchange = (x) => { localStorage.setItem("passport-show-archived", x.target.checked ? "1" : "0"); pEvents(); };
+    $("newEv2").onclick = () => eventModal(null); const n3 = $("newEv3"); if (n3) n3.onclick = () => eventModal(null);
+    document.querySelectorAll("[data-open]").forEach((b) => (b.onclick = () => { page = "dashboard"; loadEvents(b.dataset.open); }));
+    document.querySelectorAll("[data-evstatus]").forEach((s) => (s.onchange = async () => {
+      const e = byId(s.dataset.evstatus);
+      if (await setStatus(e, s.value)) { page = "events"; loadEvents(ev && ev.id); } else s.value = e.status;
+    }));
+    document.querySelectorAll("[data-archive]").forEach((b) => (b.onclick = async () => { if (await setStatus(byId(b.dataset.archive), "archived")) { page = "events"; loadEvents(); } }));
+    document.querySelectorAll("[data-restore]").forEach((b) => (b.onclick = async () => { if (await setStatus(byId(b.dataset.restore), "ready")) { page = "events"; loadEvents(ev && ev.id); } }));
+    document.querySelectorAll("[data-delev]").forEach((b) => (b.onclick = async () => { if (await deleteEvent(byId(b.dataset.delev))) { page = "events"; loadEvents(); } }));
+  }
+
+  function printWindow(title, body, css) {
+    const w = window.open("", "_blank");
+    if (!w) return toast("Allow pop-ups to print.", "err");
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+      <style>*{box-sizing:border-box} body{font-family:Inter,system-ui,sans-serif;margin:0;color:#14202E;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      svg{display:block;width:100%;height:auto} @page{size:letter;margin:0.4in} ${css}</style></head><body>${body}
+      <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);
+    w.document.close();
+  }
+  function printPoster() {
+    printWindow(ev.name + " poster", `<div class="poster">
+      ${P.orgLogoTag("org")}
+      ${ev.logo_path ? `<img class="lg" src="${logoUrl(ev.logo_path)}" alt="">` : ""}
+      <h1>${esc(ev.name)}</h1><h2>Get your event passport</h2>
+      <p>Visit booths, collect stamps${ev.prize_text ? ", win " + esc(ev.prize_text) : " and win prizes"}!</p>
+      <div class="qr">${qrSvg(joinUrl(ev.slug), 10)}</div><p class="url">${esc(joinUrl(ev.slug))}</p></div>`,
+      `.poster{text-align:center;padding:30px;border-top:18px solid ${ev.primary_color};min-height:9.5in}
+       .lg{max-height:90px;max-width:300px;object-fit:contain;margin-bottom:10px} .org{display:block;max-height:70px;max-width:260px;object-fit:contain;margin:0 auto 14px} h1{font-size:40px;margin:10px 0 4px;color:${ev.primary_color}}
+       h2{font-size:28px;margin:0;color:${ev.accent_color}} p{font-size:20px} .qr{width:4.6in;margin:24px auto 8px} .url{font-size:13px;color:#5B6778}`);
+  }
+
+  // ---------- booths ----------
+  async function pBooths() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const [booths, counts] = await Promise.all([fetchBooths(), fetchStampCounts()]);
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Booths & QR codes</h1>
+        <div class="actions">${booths.length ? `<button class="btn ghost sm" id="printAll" type="button">🖨️ Print QR cards</button><button class="btn ghost sm" id="printStaff" type="button">Print staff sheet</button>` : ""}
+        <button class="btn sm accent" id="addBooth" type="button">+ Add booth</button></div></div>
+      ${booths.length ? `<div class="card table-wrap"><table class="data"><thead><tr><th></th><th>Booth #</th><th>Booth</th><th>Question for staff to ask</th><th>Points</th><th>Visits</th><th>Status</th><th></th></tr></thead><tbody>
+        ${booths.map((b) => `<tr><td>${logoTag(b.logo_path, b.name)}</td><td>${b.booth_number ? `<span class="pill brand">${esc(b.booth_number)}</span>` : '<span class="small muted">—</span>'}</td><td><b>${esc(b.name)}</b></td>
+          <td class="small">${esc(b.question || "—")}</td><td>${b.points}</td><td>${counts[b.id] || 0}</td>
+          <td><span class="pill ${b.is_active ? "ok" : ""}">${b.is_active ? "Active" : "Hidden"}</span></td>
+          <td style="white-space:nowrap"><button class="btn sm" data-qr="${b.id}" type="button">QR</button> <button class="btn sm ghost" data-edit="${b.id}" type="button">Edit</button> <button class="btn sm danger" data-rmbooth="${b.id}" type="button" aria-label="Remove ${esc(b.name)}">Remove</button></td></tr>`).join("")}
+        </tbody></table></div>`
+        : `<div class="card empty"><h2>No booths yet</h2><p>Add each exhibitor booth with its logo — the logo becomes the stamp in attendees' passports.</p></div>`}`;
+    $("addBooth").onclick = () => boothModal(null, booths.length);
+    const pa = $("printAll"); if (pa) pa.onclick = () => printCards(booths.filter((b) => b.is_active));
+    const ps = $("printStaff"); if (ps) ps.onclick = () => printStaffSheet(booths.filter((b) => b.is_active));
+    document.querySelectorAll("[data-edit]").forEach((btn) => (btn.onclick = () => boothModal(booths.find((b) => b.id === btn.dataset.edit))));
+    document.querySelectorAll("[data-rmbooth]").forEach((btn) => (btn.onclick = () => removeBooth(booths.find((b) => b.id === btn.dataset.rmbooth), counts[btn.dataset.rmbooth] || 0)));
+    document.querySelectorAll("[data-qr]").forEach((btn) => (btn.onclick = () => qrModal(booths.find((b) => b.id === btn.dataset.qr))));
+  }
+
+  function boothModal(b, count = 0) {
+    const m = modal(`<h2>${b ? "Edit booth" : "Add booth"}</h2><form id="bForm">
+      <div class="row wrap"><div class="field grow" style="flex:3;min-width:200px"><label for="bName">Booth / exhibitor name</label><input id="bName" type="text" maxlength="120" value="${esc(b && b.name)}" required></div>
+        <div class="field" style="flex:1;min-width:110px"><label for="bNum">Booth number</label><input id="bNum" type="text" maxlength="20" placeholder="e.g. 112" value="${esc(b && b.booth_number)}"></div></div>
+      <div class="field"><label for="bWeb">Website <span class="muted">(optional, shown in the vendor list)</span></label><input id="bWeb" type="text" inputmode="url" autocomplete="url" maxlength="300" placeholder="https://example.com" value="${esc(b && b.website)}"></div>
+      <div class="field"><label for="bQ">Question for booth staff to ask</label><textarea id="bQ" placeholder="e.g. Name one career path in collision repair.">${esc(b && b.question)}</textarea>
+        <div class="hint">Printed on the staff sheet. Staff reveal the QR once the attendee answers.</div></div>
+      <div class="row wrap"><div class="field"><label for="bPts">Points</label><input id="bPts" type="number" min="0" max="1000" value="${b ? b.points : 1}" style="max-width:120px"></div>
+        <div class="field"><label for="bSort">Display order</label><input id="bSort" type="number" value="${b ? b.sort_order : count + 1}" style="max-width:120px"></div></div>
+      ${logoField(b && b.logo_path, "Logo (used as the passport stamp)")}
+      <label class="check field"><input id="bActive" type="checkbox" ${!b || b.is_active ? "checked" : ""}> Active (appears in passports and QR works)</label>
+      ${b ? `<div class="section-title">Danger zone</div><div class="row wrap">
+        <button class="btn sm ghost" type="button" id="regen">Generate new QR code</button>
+        <button class="btn sm danger" type="button" id="delBooth">Delete booth</button></div>
+        <p class="hint">A new QR code stops the old printed one from working.</p>` : ""}
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn" type="submit">Save booth</button></div></form>`);
+    const logo = wireLogoInput(m.el.querySelector(".logo-edit"), b && b.logo_path);
+    m.el.querySelector("#bForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = e.submitter; btn.disabled = true;
+      let web = val(m.el, "#bWeb");
+      if (web && !/^https?:\/\//i.test(web)) web = "https://" + web;
+      if (web && !safeUrl(web)) { btn.disabled = false; return toast("That website address doesn't look right.", "err"); }
+      const row = { name: val(m.el, "#bName"), booth_number: val(m.el, "#bNum") || null, website: web ? safeUrl(web) : null,
+        question: val(m.el, "#bQ") || null,
+        points: Math.max(0, parseInt(val(m.el, "#bPts")) || 0), sort_order: parseInt(val(m.el, "#bSort")) || 0, is_active: m.el.querySelector("#bActive").checked };
+      if (!row.name) { btn.disabled = false; return toast("Enter a booth name.", "err"); }
+      if (logo.file()) { const p = await uploadLogo(logo.file(), "booths/" + ev.id); if (!p) { btn.disabled = false; return; } row.logo_path = p; if (b) await removeLogo(b.logo_path); }
+      else if (logo.removed()) { row.logo_path = null; if (b) await removeLogo(b.logo_path); }
+      const { error } = b ? await sb.from("booths").update(row).eq("id", b.id) : await sb.from("booths").insert({ ...row, event_id: ev.id });
+      btn.disabled = false;
+      if (error) return fail(error, "Couldn't save booth");
+      m.close(); toast("Booth saved.", "ok"); pBooths();
+    };
+    if (b) {
+      m.el.querySelector("#regen").onclick = async () => {
+        if (!confirm("Generate a new code? Any printed QR for this booth will stop working.")) return;
+        const { error } = await sb.from("booths").update({ code: randCode() }).eq("id", b.id);
+        if (error) return fail(error);
+        m.close(); toast("New QR code generated — reprint this booth's card.", "ok"); pBooths();
+      };
+      m.el.querySelector("#delBooth").onclick = async () => { if (await removeBooth(b)) m.close(); };
+    }
+  }
+
+  async function removeBooth(b, visits) {
+    if (visits === undefined) { const { count } = await sb.from("stamps").select("id", { count: "exact", head: true }).eq("booth_id", b.id); visits = count || 0; }
+    const msg = visits
+      ? `Remove "${b.name}" from ${ev.name}?\n\n${visits} attendee${visits === 1 ? " has" : "s have"} this stamp. Removing the booth deletes those stamps and lowers their points.\n\nTo keep their points, cancel and use Edit → untick "Active" to hide the booth instead.`
+      : `Remove "${b.name}" from ${ev.name}? Its QR code will stop working.`;
+    if (!confirm(msg)) return false;
+    const { error } = await sb.from("booths").delete().eq("id", b.id);
+    if (error) { fail(error); return false; }
+    await removeLogo(b.logo_path);
+    toast("Booth removed.", "ok"); pBooths();
+    return true;
+  }
+
+  function qrModal(b) {
+    const url = boothUrl(ev.slug, b.code);
+    const m = modal(`<h2>${esc(b.name)} — stamp QR</h2>
+      <div class="qrbox">${qrSvg(url)}</div>
+      <p class="small" style="text-align:center">Code: <span class="code">${esc(b.code)}</span></p>
+      <p class="small muted" style="text-align:center">Attendees can scan with the passport app or their phone camera. Booth staff can also read out the code.</p>
+      ${b.question ? `<div class="card" style="background:var(--bg);box-shadow:none"><b class="small">Question to ask first</b><p style="margin:4px 0 0">${esc(b.question)}</p></div>` : ""}
+      <div class="row" style="justify-content:flex-end;margin-top:14px;flex-wrap:wrap">
+        <button class="btn ghost" type="button" data-close>Close</button>
+        <button class="btn ghost" type="button" id="copyLink">Copy link</button>
+        <button class="btn ghost" type="button" id="dlQr">Download PNG</button>
+        <button class="btn" type="button" id="printOne">Print card</button></div>`);
+    m.el.querySelector("#dlQr").onclick = () => downloadFile(`${ev.slug}-${slugify(b.name)}-qr.png`, qrDataUrl(url, 16));
+    m.el.querySelector("#printOne").onclick = () => printCards([b]);
+    m.el.querySelector("#copyLink").onclick = async () => { try { await navigator.clipboard.writeText(url); toast("Link copied.", "ok"); } catch (e) { prompt("Copy this link:", url); } };
+  }
+
+  function printCards(booths) {
+    if (!booths.length) return toast("No active booths to print.", "err");
+    printWindow(ev.name + " booth QR cards", `<div class="sheet">${booths.map((b) => `<div class="qc">
+        <div class="ev">${esc(ev.name)}</div>
+        <div class="lg">${b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="">` : `<span>${esc(initials(b.name))}</span>`}</div>
+        <div class="nm">${esc(b.name)}</div>${b.booth_number ? `<div class="bn">Booth ${esc(b.booth_number)}</div>` : ""}
+        <div class="qr">${qrSvg(boothUrl(ev.slug, b.code), 8)}</div>
+        <div class="cta">Answer our question, then scan to collect your stamp!</div>
+        <div class="cd">${esc(b.code)}</div>${P.orgLogoTag("org")}</div>`).join("")}</div>`,
+      `.sheet{display:grid;grid-template-columns:1fr 1fr;gap:0.25in}
+       .qc{border:2px solid ${ev.primary_color};border-radius:16px;padding:16px;text-align:center;break-inside:avoid;page-break-inside:avoid;height:4.9in;display:flex;flex-direction:column;align-items:center;border-top-width:12px}
+       .ev{font-size:11px;font-weight:600;color:#5B6778;text-transform:uppercase;letter-spacing:.06em}
+       .lg{width:70px;height:70px;border-radius:50%;border:3px solid ${ev.accent_color};display:grid;place-items:center;overflow:hidden;margin:8px 0 4px}
+       .lg img{width:75%;height:75%;object-fit:contain} .lg span{font-weight:800;color:${ev.primary_color};font-size:22px}
+       .nm{font-size:18px;font-weight:800;color:${ev.primary_color}} .bn{font-size:12px;font-weight:700;color:#5B6778} .qr{width:2.3in;margin:6px auto}
+       .cta{font-size:12.5px;font-weight:600;margin-top:auto} .cd{font-family:monospace;font-size:10px;color:#5B6778;margin-top:4px} .qc .org{height:26px;max-width:120px;object-fit:contain;margin-top:6px}`);
+  }
+  function printStaffSheet(booths) {
+    printWindow(ev.name + " staff sheet", `<h1>${esc(ev.name)} — booth questions (staff only)</h1>
+      <table><thead><tr><th>#</th><th>Booth</th><th>Question to ask</th><th>Backup code</th></tr></thead><tbody>
+      ${[...booths].sort(boothSort).map((b) => `<tr><td>${esc(b.booth_number || "")}</td><td><b>${esc(b.name)}</b></td><td>${esc(b.question || "—")}</td><td class="c">${esc(b.code)}</td></tr>`).join("")}</tbody></table>
+      <p class="n">Keep this sheet out of sight — anyone with a code can collect that booth's stamp.</p>`,
+      `h1{font-size:20px;color:${ev.primary_color}} table{width:100%;border-collapse:collapse;font-size:13px} th,td{border:1px solid #DDE3EA;padding:8px;text-align:left;vertical-align:top}
+       th{background:#F4F6F9} .c{font-family:monospace;font-size:11px} .n{font-size:12px;color:#5B6778}`);
+  }
+
+  // ---------- attendees ----------
+  let attSearch = "";
+  async function pAttendees() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const scores = await fetchScores();
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Attendees <span class="pill brand">${scores.length}</span></h1>
+        <div class="actions"><button class="btn ghost sm" id="exportCsv" type="button">⬇ Export CSV</button><button class="btn sm accent" id="addAtt" type="button">+ Add attendee</button></div></div>
+      <div class="card">
+        <input id="attQ" type="text" placeholder="Search name, email or school…" value="${esc(attSearch)}" style="margin-bottom:10px" aria-label="Search attendees">
+        <div class="table-wrap"><table class="data"><thead><tr><th>Name</th><th>Email</th><th>School / org</th><th>Stamps</th><th>Points</th><th>Registered</th><th></th></tr></thead><tbody id="attRows"></tbody></table></div>
+      </div>`;
+    const draw = () => {
+      const q = attSearch.toLowerCase();
+      const rows = scores.filter((a) => !q || `${a.first_name} ${a.last_name} ${a.email} ${a.organization || ""}`.toLowerCase().includes(q));
+      $("attRows").innerHTML = rows.map((a) => `<tr><td><b>${esc(a.first_name)} ${esc(a.last_name)}</b> ${a.has_won ? '<span class="pill accent">Winner</span>' : ""}</td>
+        <td class="small">${esc(a.email)}</td><td class="small">${esc(a.organization || "")}</td><td>${a.stamp_count}</td><td><b>${a.points}</b></td>
+        <td class="small muted">${new Date(a.created_at).toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" })}</td>
+        <td style="white-space:nowrap"><button class="btn sm ghost" data-att="${a.id}" type="button">Edit</button></td></tr>`).join("")
+        || `<tr><td colspan="7" class="empty">${scores.length ? "No matches." : "No one has registered yet."}</td></tr>`;
+      document.querySelectorAll("[data-att]").forEach((b) => (b.onclick = () => attendeeModal(scores.find((a) => a.id === b.dataset.att))));
+    };
+    draw();
+    $("attQ").oninput = (e) => { attSearch = e.target.value; draw(); };
+    $("addAtt").onclick = () => attendeeModal(null);
+    $("exportCsv").onclick = async () => {
+      const [booths, stamps] = await Promise.all([fetchBooths(), fetchAll(() => sb.from("stamps").select("attendee_id,booth_id").eq("event_id", ev.id).order("id"))]);
+      const has = new Set(stamps.map((s) => s.attendee_id + "|" + s.booth_id));
+      const head = ["First name", "Last name", "Email", "School / organization", "Stamps", "Points", "Winner", "Registered", ...booths.map((b) => b.name)];
+      const lines = [head.map(csvCell).join(","), ...scores.map((a) => [a.first_name, a.last_name, a.email, a.organization, a.stamp_count, a.points, a.has_won ? "Yes" : "",
+        new Date(a.created_at).toISOString(), ...booths.map((b) => (has.has(a.id + "|" + b.id) ? "✓" : ""))].map(csvCell).join(","))];
+      downloadFile(`${ev.slug}-attendees.csv`, "﻿" + lines.join("\n"), "text/csv");
+    };
+  }
+
+  async function attendeeModal(a) {
+    const booths = await fetchBooths();
+    let have = new Set();
+    if (a) { const { data } = await sb.from("stamps").select("booth_id").eq("attendee_id", a.id); have = new Set((data || []).map((s) => s.booth_id)); }
+    const m = modal(`<h2>${a ? "Edit attendee" : "Add attendee"}</h2><form id="aForm">
+      <div class="row wrap"><div class="field grow"><label for="aFirst">First name</label><input id="aFirst" type="text" maxlength="60" value="${esc(a && a.first_name)}" required></div>
+        <div class="field grow"><label for="aLast">Last name</label><input id="aLast" type="text" maxlength="60" value="${esc(a && a.last_name)}" required></div></div>
+      <div class="field"><label for="aMail">Email</label><input id="aMail" type="email" maxlength="254" value="${esc(a && a.email)}" required></div>
+      <div class="field"><label for="aOrg">School / organization</label><input id="aOrg" type="text" maxlength="120" value="${esc(a && a.organization)}"></div>
+      <div class="field"><label>Stamps</label><div class="stamp-toggles">${booths.map((b) => `<label><input type="checkbox" value="${b.id}" ${have.has(b.id) ? "checked" : ""}> ${esc(b.name)}</label>`).join("") || '<span class="muted small">No booths yet.</span>'}</div>
+        <div class="hint">Tick to award a stamp manually (e.g. if a scan failed); untick to remove one.</div></div>
+      <div class="row" style="margin-top:14px">${a ? '<button class="btn sm danger" type="button" id="delAtt">Delete attendee</button>' : ""}
+        <span class="grow"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn" type="submit">Save</button></div></form>`);
+    m.el.querySelector("#aForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const row = { first_name: val(m.el, "#aFirst"), last_name: val(m.el, "#aLast"), email: val(m.el, "#aMail").toLowerCase(), organization: val(m.el, "#aOrg") || null };
+      if (!row.first_name || !row.last_name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(row.email)) return toast("Enter a name and a valid email.", "err");
+      let id = a && a.id;
+      const r = a ? await sb.from("attendees").update(row).eq("id", id) : await sb.from("attendees").insert({ ...row, event_id: ev.id }).select("id").single();
+      if (r.error) return fail(r.error, r.error.code === "23505" ? "That email is already registered for this event" : "Couldn't save");
+      if (!a) id = r.data.id;
+      const want = new Set([...m.el.querySelectorAll(".stamp-toggles input:checked")].map((i) => i.value));
+      const add = [...want].filter((x) => !have.has(x)).map((booth_id) => ({ event_id: ev.id, attendee_id: id, booth_id, source: "admin" }));
+      const del = [...have].filter((x) => !want.has(x));
+      if (add.length) { const { error } = await sb.from("stamps").insert(add); if (error) return fail(error); }
+      if (del.length) { const { error } = await sb.from("stamps").delete().eq("attendee_id", id).in("booth_id", del); if (error) return fail(error); }
+      m.close(); toast("Attendee saved.", "ok"); pAttendees();
+    };
+    if (a) m.el.querySelector("#delAtt").onclick = async () => {
+      if (!confirm(`Delete ${a.first_name} ${a.last_name}? Their stamps and any wins are removed too.`)) return;
+      const { error } = await sb.from("attendees").delete().eq("id", a.id);
+      if (error) return fail(error);
+      m.close(); toast("Attendee deleted.", "ok"); pAttendees();
+    };
+  }
+
+  // ---------- winners ----------
+  async function pWinners() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const { data, error } = await sb.from("winners").select("id,prize,drawn_at,attendee:attendees(first_name,last_name,email,organization)").eq("event_id", ev.id).order("drawn_at", { ascending: false });
+    if (error) return fail(error);
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Winners</h1><div class="actions">
+        <a class="btn sm accent" href="display.html?e=${encodeURIComponent(ev.slug)}&draw=1" target="_blank" rel="noopener">🎲 Open draw screen ↗</a></div></div>
+      <p class="muted small">Draws run on the big-screen page so the audience can watch. Removing a winner here puts them back in the pool.</p>
+      ${data.length ? `<div class="card table-wrap"><table class="data"><thead><tr><th>Winner</th><th>Email</th><th>School / org</th><th>Prize</th><th>Drawn</th><th></th></tr></thead><tbody>
+        ${data.map((w) => `<tr><td><b>${esc(w.attendee.first_name)} ${esc(w.attendee.last_name)}</b></td><td class="small">${esc(w.attendee.email)}</td>
+          <td class="small">${esc(w.attendee.organization || "")}</td><td>${esc(w.prize || "—")}</td>
+          <td class="small muted">${new Date(w.drawn_at).toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" })}</td>
+          <td><button class="btn sm danger" data-unwin="${w.id}" type="button">Remove</button></td></tr>`).join("")}</tbody></table></div>`
+        : '<div class="card empty"><h2>No winners yet</h2><p>Open the draw screen when you are ready to pick winners.</p></div>'}`;
+    document.querySelectorAll("[data-unwin]").forEach((b) => (b.onclick = async () => {
+      if (!confirm("Remove this winner? They'll be eligible to be drawn again.")) return;
+      const { error } = await sb.from("winners").delete().eq("id", b.dataset.unwin);
+      if (error) return fail(error);
+      toast("Winner removed.", "ok"); pWinners();
+    }));
+  }
+
+  // ---------- settings ----------
+  function pSettings() {
+    $("page").innerHTML = `<div class="pagehead"><h1>Event settings</h1></div>
+      <div style="max-width:720px">${statusCard()}</div>
+      <div class="card" style="max-width:720px"><form id="setForm">${eventForm(ev)}
+        <div class="row" style="justify-content:flex-end"><button class="btn" type="submit">Save changes</button></div></form>
+        <div class="section-title">Attendee app address</div>
+        <p class="small muted">QR codes point here. It's detected automatically from where this admin page is hosted; only change it if the attendee page lives somewhere else.</p>
+        <div class="row wrap"><input id="appUrl" type="url" value="${esc(appBaseUrl())}" class="grow" style="flex:1;min-width:240px"><button class="btn ghost sm" id="saveUrl" type="button">Save</button><button class="btn ghost sm" id="resetUrl" type="button">Reset</button></div>
+        <div class="section-title">Archive or delete</div>
+        <div class="row wrap">${ev.status === "archived" ? '<button class="btn ghost" id="archEvent" type="button">↩ Restore event</button>' : '<button class="btn ghost" id="archEvent" type="button">🗄 Archive event</button>'}
+        <button class="btn danger" id="delEvent" type="button">Delete this event</button></div>
+        <p class="hint">Archive hides the event but keeps all data. Delete permanently removes the event with all booths, attendees, stamps and winners.</p></div>`;
+    wireStatusCard();
+    $("archEvent").onclick = async () => { if (await setStatus(ev, ev.status === "archived" ? "ready" : "archived")) loadEvents(ev.id); };
+    wireSlug($("page"), false);
+    const logo = wireLogoInput($("page").querySelector(".logo-edit"), ev.logo_path);
+    $("setForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const saved = await saveEvent($("page"), ev, logo);
+      if (saved) { toast("Settings saved.", "ok"); page = "settings"; loadEvents(saved.id); }
+    };
+    $("saveUrl").onclick = () => { const v = $("appUrl").value.trim(); try { new URL(v); localStorage.setItem("passport-app-url", v); toast("Saved on this browser.", "ok"); } catch (e) { toast("Enter a full URL.", "err"); } };
+    $("resetUrl").onclick = () => { localStorage.removeItem("passport-app-url"); $("appUrl").value = appBaseUrl(); };
+    $("delEvent").onclick = async () => { if (await deleteEvent(ev)) { page = "events"; loadEvents(); } };
+  }
+
+  // ---------- admins ----------
+  async function pAdmins() {
+    const [a, i] = await Promise.all([sb.from("admins").select("*").order("created_at"), sb.from("admin_invites").select("*").order("created_at")]);
+    if (a.error) return fail(a.error);
+    $("page").innerHTML = `<div class="pagehead"><h1>Admin users</h1></div>
+      <div class="grid2">
+        <div class="card"><h2 style="font-size:1.05rem">Admins <span class="pill">${a.data.length}</span></h2><div class="table-wrap"><table class="data"><thead><tr><th>Email</th><th>Role</th><th></th></tr></thead><tbody>
+          ${a.data.map((x) => `<tr><td>${esc(x.email)} ${x.user_id === me.id ? '<span class="pill">You</span>' : ""}</td><td><span class="pill ${x.role === "owner" ? "brand" : ""}">${x.role === "owner" ? "Owner" : "Admin"}</span></td>
+          <td style="white-space:nowrap;text-align:right">${myRole === "owner" && x.user_id !== me.id ? `
+            <button class="btn sm ghost" data-role="${x.user_id}" data-to="${x.role === "owner" ? "admin" : "owner"}" type="button">${x.role === "owner" ? "Make admin" : "Make owner"}</button>
+            <button class="btn sm danger" data-rm="${x.user_id}" data-email="${esc(x.email)}" type="button">Remove</button>` : ""}</td></tr>`).join("")}</tbody></table></div>
+          <p class="hint">${myRole === "owner"
+            ? "Owners can remove admins and make other people owners. You can't remove or demote yourself — make someone else an owner first, and they can do it."
+            : "Only owners can remove admins. Ask an owner if someone should lose access."}</p></div>
+        <div class="card"><h2 style="font-size:1.05rem">Invite an admin</h2>
+          <p class="small muted">Add their email, then send them this page's address. They choose “Create an admin account” with that same email. If they already have an account, they get access straight away.</p>
+          <form id="invForm" class="row"><input id="invEmail" type="email" placeholder="name@example.com" required class="grow" style="flex:1"><button class="btn" type="submit">Invite</button></form>
+          ${(i.data || []).length ? `<h3 class="small" style="margin-top:16px">Pending invites</h3>${i.data.map((x) => `<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="grow small">${esc(x.email)}</span><button class="linkbtn small" data-uninv="${esc(x.email)}" type="button">Cancel</button></div>`).join("")}` : ""}
+          <p class="small" style="margin-top:14px">Admin page: <span class="code">${esc(location.href.split("#")[0].split("?")[0])}</span></p></div>
+      </div>`;
+    $("invForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const email = $("invEmail").value.trim().toLowerCase();
+      const { error } = await sb.from("admin_invites").insert({ email, invited_by: me.id });
+      if (error) return fail(error, error.code === "23505" ? "Already invited" : "Couldn't invite");
+      toast("Invite added.", "ok"); pAdmins();
+    };
+    document.querySelectorAll("[data-uninv]").forEach((b) => (b.onclick = async () => { await sb.from("admin_invites").delete().eq("email", b.dataset.uninv); pAdmins(); }));
+    document.querySelectorAll("[data-rm]").forEach((b) => (b.onclick = async () => {
+      if (!confirm(`Remove ${b.dataset.email}'s admin access? They'll no longer be able to manage events. You can invite them again later.`)) return;
+      const { error } = await sb.from("admins").delete().eq("user_id", b.dataset.rm);
+      if (error) return fail(error);
+      toast("Admin removed.", "ok"); pAdmins();
+    }));
+    document.querySelectorAll("[data-role]").forEach((b) => (b.onclick = async () => {
+      const to = b.dataset.to;
+      if (!confirm(to === "owner" ? "Make this person an owner? Owners can remove admins and change roles." : "Change this owner to a regular admin?")) return;
+      const { error } = await sb.from("admins").update({ role: to }).eq("user_id", b.dataset.role);
+      if (error) return fail(error);
+      toast("Role updated.", "ok"); pAdmins();
+    }));
+  }
+
+
+  // ---------- floor plan ----------
+  let fpZoom = 1, fpSel = null;
+  const pinLabel = (b) => b.booth_number || initials(b.name);
+
+  async function loadPdfJs() {
+    if (window.pdfjsLib) return window.pdfjsLib;
+    await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+    return window.pdfjsLib;
+  }
+  const canvasBlob = (c) => new Promise((r) => c.toBlob(r, "image/jpeg", 0.9));
+  const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+
+  // Turn whatever was uploaded into a web-friendly image (PDF -> page 1 as JPEG; very large images downscaled)
+  async function prepareFloorplan(file) {
+    const MAX = 3200;
+    if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
+      const pdfjs = await loadPdfJs();
+      const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+      const page = await doc.getPage(1);
+      const base = page.getViewport({ scale: 1 });
+      const vp = page.getViewport({ scale: Math.min(4, MAX / Math.max(base.width, base.height)) });
+      const c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+      const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+      return { blob: await canvasBlob(c), ext: "jpg", type: "image/jpeg", w: c.width, h: c.height, pages: doc.numPages };
+    }
+    if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) throw new Error("Use a PNG, JPG, WebP, SVG or PDF file.");
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await loadImg(url);
+      let w = img.naturalWidth || 1600, h = img.naturalHeight || 1000;
+      if (file.type !== "image/svg+xml" && (Math.max(w, h) > MAX || file.size > 8 * 1024 * 1024)) {
+        const k = Math.min(1, MAX / Math.max(w, h)); w = Math.round(w * k); h = Math.round(h * k);
+        const c = document.createElement("canvas"); c.width = w; c.height = h;
+        const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+        return { blob: await canvasBlob(c), ext: "jpg", type: "image/jpeg", w, h };
+      }
+      const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/svg+xml": "svg" }[file.type];
+      return { blob: file, ext, type: file.type, w, h };
+    } finally { URL.revokeObjectURL(url); }
+  }
+
+  async function uploadFloorplan(file) {
+    if (file.size > 40 * 1024 * 1024) return toast("That file is over 40 MB — please export a smaller version.", "err");
+    toast("Preparing floor plan…");
+    let out;
+    try { out = await prepareFloorplan(file); } catch (e) { return fail(e, "Couldn't read that file"); }
+    if (out.blob.size > 15 * 1024 * 1024) return toast("The floor plan is still over 15 MB after processing — try a smaller export.", "err");
+    const path = `${ev.id}/${crypto.randomUUID()}.${out.ext}`;
+    const { error } = await sb.storage.from("floorplans").upload(path, out.blob, { contentType: out.type });
+    if (error) return fail(error, "Upload failed");
+    const old = ev.floorplan_path;
+    const { error: e2 } = await sb.from("events").update({ floorplan_path: path, floorplan_w: out.w, floorplan_h: out.h }).eq("id", ev.id);
+    if (e2) { await sb.storage.from("floorplans").remove([path]); return fail(e2, "Couldn't save floor plan"); }
+    if (old) await sb.storage.from("floorplans").remove([old]);
+    toast(out.pages > 1 ? `Floor plan saved (page 1 of ${out.pages} used).` : old ? "Floor plan replaced — check that booth pins still line up." : "Floor plan saved. Now place your booths.", "ok");
+    page = "floorplan"; loadEvents(ev.id);
+  }
+
+  async function pFloorplan() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const booths = (await fetchBooths()).filter((b) => b.is_active).sort(boothSort);
+    const has = !!ev.floorplan_path;
+    if (fpSel && !booths.some((b) => b.id === fpSel)) fpSel = null;
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Floor plan</h1><div class="actions">
+        <label class="btn sm ${has ? "ghost" : "accent"}" style="cursor:pointer" tabindex="0">${has ? "Replace floor plan" : "⬆ Upload floor plan"}
+          <input type="file" id="fpFile" accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf" hidden></label>
+        ${has ? '<button class="btn sm danger" id="fpRemove" type="button">Remove floor plan</button>' : ""}</div></div>
+      ${has ? `<div class="fp-grid">
+        <div class="card" style="padding:14px">
+          <div class="fp-tools"><button class="zb" data-z="-1" type="button" aria-label="Zoom out">−</button><span class="small" id="fpZ" style="min-width:44px;text-align:center"></span>
+            <button class="zb" data-z="1" type="button" aria-label="Zoom in">+</button><span class="fp-hint" id="fpHint" aria-live="polite"></span></div>
+          <div class="fp-view" id="fpView"><div class="fp-inner" id="fpInner">
+            <img id="fpImg" src="${esc(floorplanUrl(ev.floorplan_path))}" alt="Floor plan for ${esc(ev.name)}" draggable="false"
+              ${ev.floorplan_w ? `width="${ev.floorplan_w}" height="${ev.floorplan_h}"` : ""}><div id="fpPins"></div></div></div>
+        </div>
+        <div class="card" style="padding:14px"><div class="row" style="margin-bottom:6px"><h2 class="grow" style="font-size:1rem;margin:0">Booths</h2><span class="small muted" id="fpCount"></span></div>
+          <div class="fp-list" id="fpList"></div>
+          <p class="hint" style="margin-top:10px">Select a booth, then click its spot on the plan. Drag a pin to move it. Booths without a number show their initials.</p></div>
+      </div>`
+      : `<div class="card empty"><h2>No floor plan yet</h2><p>Upload the event floor plan as a PNG, JPG, SVG or PDF. You can then pin each booth on it,<br>and attendees will see the map — with the booths they've visited — in their passport.</p>
+          <label class="btn accent" style="cursor:pointer" tabindex="0">⬆ Upload floor plan<input type="file" id="fpFile2" accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf" hidden></label></div>`}`;
+
+    document.querySelectorAll("#fpFile, #fpFile2").forEach((i) => (i.onchange = () => { if (i.files[0]) uploadFloorplan(i.files[0]); }));
+    document.querySelectorAll(".pagehead label.btn, .empty label.btn").forEach((l) => (l.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); l.querySelector("input").click(); } }));
+    if (!has) return;
+    $("fpRemove").onclick = async () => {
+      if (!confirm("Remove the floor plan? Attendees will no longer see a map. Booth pins are kept in case you upload it again.")) return;
+      const old = ev.floorplan_path;
+      const { error } = await sb.from("events").update({ floorplan_path: null, floorplan_w: null, floorplan_h: null }).eq("id", ev.id);
+      if (error) return fail(error);
+      await sb.storage.from("floorplans").remove([old]);
+      toast("Floor plan removed.", "ok"); page = "floorplan"; loadEvents(ev.id);
+    };
+
+    const inner = $("fpInner"), view = $("fpView");
+    const ZOOMS = [1, 1.5, 2, 3, 4];
+    const setZoom = (z) => {
+      const cx = (view.scrollLeft + view.clientWidth / 2) / inner.offsetWidth, cy = (view.scrollTop + view.clientHeight / 2) / inner.offsetHeight;
+      fpZoom = z; inner.style.width = z * 100 + "%"; $("fpZ").textContent = Math.round(z * 100) + "%";
+      view.scrollLeft = cx * inner.offsetWidth - view.clientWidth / 2; view.scrollTop = cy * inner.offsetHeight - view.clientHeight / 2;
+    };
+    document.querySelectorAll("[data-z]").forEach((b) => (b.onclick = () => {
+      const i = ZOOMS.indexOf(fpZoom) + Number(b.dataset.z); setZoom(ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, i))]);
+    }));
+    setZoom(ZOOMS.includes(fpZoom) ? fpZoom : 1);
+
+    function draw() {
+      const placed = booths.filter((b) => b.map_x != null).length;
+      $("fpCount").textContent = `${placed} of ${booths.length} placed`;
+      $("fpPins").innerHTML = booths.filter((b) => b.map_x != null).map((b) =>
+        `<button type="button" class="pin ${b.id === fpSel ? "sel" : ""}" data-pin="${b.id}" style="left:${b.map_x * 100}%;top:${b.map_y * 100}%" title="${esc(b.name)}" aria-label="${esc(b.name)}">${esc(pinLabel(b))}</button>`).join("");
+      $("fpList").innerHTML = booths.map((b) => `<button type="button" data-sel="${b.id}" aria-pressed="${b.id === fpSel}">
+        <span class="pill ${b.booth_number ? "brand" : ""}" style="min-width:42px;text-align:center">${esc(b.booth_number || "—")}</span><span class="nm">${esc(b.name)}</span>
+        <span class="small ${b.map_x != null ? "" : "muted"}" style="color:${b.map_x != null ? "var(--ok)" : ""}">${b.map_x != null ? "✓ Placed" : "Not placed"}</span></button>`).join("")
+        || '<p class="small muted" style="padding:6px">Add booths first (Booths & QR codes).</p>';
+      const sel = booths.find((b) => b.id === fpSel);
+      inner.classList.toggle("placing", !!sel);
+      $("fpHint").innerHTML = sel
+        ? `${sel.map_x != null ? "Click to move" : "Click on the plan to place"} <b>${esc(sel.name)}</b>${sel.map_x != null ? ' · <button type="button" class="linkbtn small" id="fpUnpin">Remove pin</button>' : ""}`
+        : booths.length ? "Select a booth on the right to place it." : "";
+      const un = $("fpUnpin"); if (un) un.onclick = () => savePin(sel, null, null);
+      $("fpList").querySelectorAll("[data-sel]").forEach((x) => (x.onclick = () => { fpSel = fpSel === x.dataset.sel ? null : x.dataset.sel; draw(); }));
+      $("fpPins").querySelectorAll("[data-pin]").forEach(wirePin);
+    }
+
+    async function savePin(b, x, y, advance) {
+      const prev = [b.map_x, b.map_y];
+      b.map_x = x == null ? null : Math.round(x * 10000) / 10000; b.map_y = y == null ? null : Math.round(y * 10000) / 10000;
+      if (advance) { const next = booths.find((o) => o.map_x == null && o.id !== b.id); fpSel = next ? next.id : null; }
+      draw();
+      const { error } = await sb.from("booths").update({ map_x: b.map_x, map_y: b.map_y }).eq("id", b.id);
+      if (error) { [b.map_x, b.map_y] = prev; draw(); fail(error, "Couldn't save pin"); }
+    }
+    const frac = (e) => { const r = inner.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))]; };
+
+    inner.addEventListener("click", (e) => {
+      if (e.target.closest(".pin")) return;
+      const b = booths.find((o) => o.id === fpSel);
+      if (!b) return toast(booths.length ? "Select a booth on the right first." : "Add booths first.", "err");
+      const [x, y] = frac(e);
+      savePin(b, x, y, b.map_x == null);
+    });
+    function wirePin(el) {
+      const b = booths.find((o) => o.id === el.dataset.pin);
+      let start = null, moved = false;
+      el.onpointerdown = (e) => { e.preventDefault(); el.setPointerCapture(e.pointerId); start = [e.clientX, e.clientY]; moved = false; };
+      el.onpointermove = (e) => {
+        if (!start) return;
+        if (!moved && Math.hypot(e.clientX - start[0], e.clientY - start[1]) < 4) return;
+        moved = true; el.classList.add("dragging");
+        const [x, y] = frac(e); el.style.left = x * 100 + "%"; el.style.top = y * 100 + "%";
+      };
+      el.onpointerup = (e) => {
+        if (!start) return; start = null; el.classList.remove("dragging");
+        if (moved) { fpSel = b.id; const [x, y] = frac(e); savePin(b, x, y); } else { fpSel = fpSel === b.id ? null : b.id; draw(); }
+      };
+      el.onkeydown = (e) => {   // arrow keys nudge a selected pin
+        const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+        if (!d) return; e.preventDefault(); fpSel = b.id;
+        const step = e.shiftKey ? 0.01 : 0.002;
+        savePin(b, Math.min(1, Math.max(0, b.map_x + d[0] * step)), Math.min(1, Math.max(0, b.map_y + d[1] * step)));
+        setTimeout(() => { const p = document.querySelector(`[data-pin="${b.id}"]`); if (p) p.focus(); });
+      };
+    }
+    draw();
+  }
+
+  // ---------- reports ----------
+  const RPT_KEY = "passport-report-events";
+  let rptSel = null, rptData = null, rptSeq = 0;
+  const fmtN = (n) => Number(n || 0).toLocaleString("en-CA");
+  const fmt1 = (n) => Number(n || 0).toLocaleString("en-CA", { maximumFractionDigits: 1 });
+  const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+
+  function rptLoadSel() {
+    if (rptSel) { [...rptSel].forEach((id) => { if (!events.some((e) => e.id === id)) rptSel.delete(id); }); return; }
+    let ids = [];
+    try { ids = JSON.parse(localStorage.getItem(RPT_KEY) || "[]"); } catch (e) {}
+    ids = ids.filter((id) => events.some((e) => e.id === id));
+    rptSel = new Set(ids.length ? ids : ev ? [ev.id] : []);
+  }
+  const rptSaveSel = () => { try { localStorage.setItem(RPT_KEY, JSON.stringify([...rptSel])); } catch (e) {} };
+
+  // one tooltip for every chart mark: marks carry data-tip='{"h":title,"r":[[value,label],...]}'
+  const vizTip = document.createElement("div");
+  vizTip.id = "vizTip"; vizTip.hidden = true; vizTip.setAttribute("role", "tooltip");
+  document.body.appendChild(vizTip);
+  function showTip(el, x, y) {
+    let d; try { d = JSON.parse(el.dataset.tip); } catch (e) { return; }
+    vizTip.replaceChildren();
+    if (d.h) { const h = document.createElement("div"); h.className = "th"; h.textContent = d.h; vizTip.appendChild(h); }
+    (d.r || []).forEach(([v, l]) => {
+      const r = document.createElement("div"); r.className = "tr";
+      const k = document.createElement("i"), b = document.createElement("b"), s = document.createElement("span");
+      b.textContent = v; s.textContent = l; r.append(k, b, s); vizTip.appendChild(r);
+    });
+    vizTip.hidden = false;
+    if (x === undefined) { const r = el.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top; }
+    const w = vizTip.offsetWidth, h = vizTip.offsetHeight;
+    vizTip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px";
+    vizTip.style.top = (y - h - 12 < 8 ? y + 18 : y - h - 12) + "px";
+  }
+  document.addEventListener("pointermove", (e) => { const t = e.target.closest && e.target.closest("[data-tip]"); if (t) showTip(t, e.clientX, e.clientY); else vizTip.hidden = true; });
+  document.addEventListener("focusin", (e) => { const t = e.target.closest && e.target.closest("[data-tip]"); if (t) showTip(t); else vizTip.hidden = true; });
+  document.addEventListener("scroll", () => (vizTip.hidden = true), true);
+  const tipAttr = (h, rows) => `data-tip="${esc(JSON.stringify({ h, r: rows }))}" tabindex="0"`;
+
+  function niceTicks(max) {
+    if (max <= 4) return Array.from({ length: Math.max(1, max) + 1 }, (_, i) => i);
+    const raw = max / 4, mag = 10 ** Math.floor(Math.log10(raw)), norm = raw / mag;
+    const step = Math.max(1, (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * mag);
+    const out = []; for (let t = 0; t < max + step; t += step) { out.push(t); if (t >= max) break; }
+    return out;
+  }
+  // single-series column chart; buckets: [{short, value, tip:{h, r}}]
+  function columnChart(buckets, height = 190) {
+    const max = Math.max(1, ...buckets.map((b) => b.value));
+    const ticks = niceTicks(max), top = ticks[ticks.length - 1];
+    const every = Math.ceil(buckets.length / (matchMedia("(max-width: 600px)").matches ? 6 : 12));
+    return `<div class="colchart" style="--h:${height}px">
+      <div class="yax">${ticks.map((t) => `<span style="bottom:${(100 * t) / top}%">${fmtN(t)}</span>`).join("")}</div>
+      <div class="plot">${ticks.slice(1).map((t) => `<i class="gl" style="bottom:${(100 * t) / top}%"></i>`).join("")}
+        <div class="cols">${buckets.map((b, i) => `<div class="col" ${tipAttr(b.tip.h, b.tip.r)} aria-label="${esc(b.tip.h)}: ${fmtN(b.value)}">
+          <b style="height:${(100 * b.value) / top}%"></b>${i % every === 0 ? `<span class="xl">${esc(b.short)}</span>` : ""}</div>`).join("")}</div></div></div>`;
+  }
+  // single-series horizontal bars; rows: [{label, value, note, tip}]
+  function barList(rows, max) {
+    max = Math.max(1, max ?? Math.max(...rows.map((r) => r.value)));
+    return `<div class="bars">${rows.map((r) => `<div class="lbl" title="${esc(r.label)}">${esc(r.label)}${r.tag || ""}</div>
+      <div class="trk" ${tipAttr(r.label, r.tip)}><b style="width:${Math.max(r.value ? 0.6 : 0, (100 * r.value) / max)}%"></b></div>
+      <div class="val">${fmtN(r.value)}${r.note ? `<span>${esc(r.note)}</span>` : ""}</div>`).join("")}</div>`;
+  }
+
+  async function pReports() {
+    rptLoadSel();
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Reports</h1>
+        <div class="actions no-print">
+          <button class="btn sm ghost" id="rCsvSummary" type="button">⬇ Summary CSV</button>
+          <button class="btn sm ghost" id="rCsvBooths" type="button">⬇ Booths CSV</button>
+          <button class="btn sm ghost" id="rCsvAtt" type="button">⬇ Attendees CSV</button>
+          <button class="btn sm" id="rPrint" type="button">🖨 Print / Save PDF</button></div></div>
+      <div class="rpt-filter no-print">
+        <div class="picker" id="rPicker">
+          <button class="btn ghost" id="rPickBtn" type="button" aria-haspopup="dialog" aria-expanded="false"></button>
+          <div class="pop hidden" id="rPop" role="dialog" aria-label="Choose events to report on">
+            <input id="rSearch" type="text" placeholder="Search events…" aria-label="Search events">
+            <div class="row wrap quick">
+              <button type="button" data-q="current">Current event</button><button type="button" data-q="all">All events</button>
+              <button type="button" data-q="year">This year</button><button type="button" data-q="completed">Completed only</button>
+              <button type="button" data-q="none">Clear</button></div>
+            <label class="check small" style="margin:0"><input type="checkbox" id="rArch"> Include archived events</label>
+            <div class="evlist" id="rList"></div>
+            <div class="row" style="justify-content:flex-end"><button class="btn sm" id="rDone" type="button">Done</button></div>
+          </div>
+        </div>
+        <span class="small muted">Pick one event for its own report, or several to combine them into one overall view.</span>
+      </div>
+      <div id="rBody"></div>`;
+
+    const pop = $("rPop"), btn = $("rPickBtn");
+    const open = (o) => { pop.classList.toggle("hidden", !o); btn.setAttribute("aria-expanded", o); if (o) { drawList(); $("rSearch").focus(); } };
+    btn.onclick = () => open(pop.classList.contains("hidden"));
+    $("rDone").onclick = () => open(false);
+    pop.addEventListener("keydown", (e) => { if (e.key === "Escape") { open(false); btn.focus(); } });
+    document.addEventListener("pointerdown", function outside(e) {
+      if (!document.body.contains(pop)) return document.removeEventListener("pointerdown", outside);
+      if (!e.target.closest("#rPicker")) open(false);
+    });
+
+    const visibleEvents = () => {
+      const q = $("rSearch").value.trim().toLowerCase(), arch = $("rArch").checked;
+      return events.filter((e) => (arch || e.status !== "archived" || rptSel.has(e.id)) && (!q || e.name.toLowerCase().includes(q)));
+    };
+    function drawList() {
+      $("rList").innerHTML = visibleEvents().map((e) => `<label class="check"><input type="checkbox" value="${e.id}" ${rptSel.has(e.id) ? "checked" : ""}>
+        <span class="grow">${esc(e.name)}<span class="small muted"> · ${esc(fmtDate(e.starts_on) || "no date")}</span></span>${statusPill(e.status)}</label>`).join("")
+        || '<p class="small muted" style="padding:8px 4px">No matching events.</p>';
+      $("rList").querySelectorAll("input").forEach((i) => (i.onchange = () => { i.checked ? rptSel.add(i.value) : rptSel.delete(i.value); changed(); }));
+    }
+    function label() {
+      const n = rptSel.size, one = n === 1 && events.find((e) => rptSel.has(e.id));
+      btn.textContent = n === 0 ? "Choose events ▾" : one ? `Event: ${one.name} ▾` : `${n} events combined ▾`;
+    }
+    let timer;
+    function changed() { rptSaveSel(); label(); clearTimeout(timer); timer = setTimeout(runReport, 300); }
+    $("rSearch").oninput = drawList;
+    $("rArch").onchange = drawList;
+    pop.querySelectorAll("[data-q]").forEach((b) => (b.onclick = () => {
+      const q = b.dataset.q, yr = new Date().getFullYear(), arch = $("rArch").checked;
+      const pool = events.filter((e) => arch || e.status !== "archived");
+      const pick = { current: ev ? [ev] : [], all: pool, none: [],
+        year: pool.filter((e) => new Date(e.starts_on ? e.starts_on + "T12:00:00" : e.created_at).getFullYear() === yr),
+        completed: pool.filter((e) => e.status === "completed") }[q];
+      rptSel = new Set(pick.map((e) => e.id));
+      drawList(); changed();
+    }));
+
+    $("rPrint").onclick = () => { if (!rptData) return toast("Choose at least one event first.", "err"); vizTip.hidden = true; window.print(); };
+    $("rCsvSummary").onclick = () => exportSummary();
+    $("rCsvBooths").onclick = () => exportBooths();
+    $("rCsvAtt").onclick = () => exportAttendees();
+    label();
+    rptData = null;
+    await runReport();
+  }
+
+  async function runReport() {
+    const body = $("rBody"); if (!body) return;
+    const ids = [...rptSel], seq = ++rptSeq;
+    if (!ids.length) {
+      rptData = null;
+      body.innerHTML = `<div class="card empty"><h2>Choose events to report on</h2><p>Select a single event for its own report, or several events to see them combined.</p></div>`;
+      return;
+    }
+    if (rptData) body.style.opacity = 0.5; else body.innerHTML = '<p class="muted">Building report…</p>';
+    const { data, error } = await sb.rpc("report_data", { p_events: ids });
+    if (seq !== rptSeq || !$("rBody")) return;          // a newer selection is already loading
+    body.style.opacity = 1;
+    if (error) return fail(error, "Couldn't build the report");
+    rptData = data;
+    renderReport(data);
+  }
+
+  function totals(d) {
+    const s = (k) => d.events.reduce((a, e) => a + (e[k] || 0), 0);
+    return { attendees: s("attendees"), players: s("players"), stamps: s("stamps"), points: s("points"), qualified: s("qualified"),
+      completed: s("completed"), winners: s("winners"), booths: s("booths") };
+  }
+  function boothGroups(d) {
+    const att = Object.fromEntries(d.events.map((e) => [e.id, e.attendees]));
+    const g = new Map();
+    d.booths.forEach((b) => {
+      const k = b.name.trim().toLowerCase();
+      const x = g.get(k) || { name: b.name.trim(), visits: 0, events: new Set(), base: 0, hidden: 0 };
+      if (x.name === x.name.toLowerCase() && b.name.trim() !== b.name.trim().toLowerCase()) x.name = b.name.trim();
+      x.visits += b.visits;
+      if (!x.events.has(b.event_id)) { x.events.add(b.event_id); x.base += att[b.event_id] || 0; }
+      if (!b.is_active) x.hidden++;
+      g.set(k, x);
+    });
+    return [...g.values()].sort((a, b) => b.visits - a.visits || a.name.localeCompare(b.name));
+  }
+
+  function activityBuckets(d) {
+    const st = d.stamp_hours.map((x) => [new Date(x.h), x.n]), rg = d.reg_hours.map((x) => [new Date(x.h), x.n]);
+    const times = [...st, ...rg].map((x) => x[0].getTime());
+    if (!times.length) return null;
+    const min = Math.min(...times), max = Math.max(...times), spanH = (max - min) / 3.6e6;
+    const hr = (t) => t.toLocaleTimeString("en-CA", { hour: "numeric" });
+    const day = (t) => t.toLocaleDateString("en-CA", { month: "short", day: "numeric" });
+    const mk = (keyOf, keys, short, title) => {
+      const S = new Map(), R = new Map();
+      st.forEach(([t, n]) => S.set(keyOf(t), (S.get(keyOf(t)) || 0) + n));
+      rg.forEach(([t, n]) => R.set(keyOf(t), (R.get(keyOf(t)) || 0) + n));
+      return keys.map((k) => ({ short: short(k), value: S.get(k) || 0, regs: R.get(k) || 0,
+        tip: { h: title(k), r: [[fmtN(S.get(k) || 0), "stamps"], [fmtN(R.get(k) || 0), "registrations"]] } }));
+    };
+    if (spanH <= 72) {
+      const keys = []; for (let t = min; t <= max; t += 3.6e6) keys.push(t);
+      let lastDay = "";
+      return { mode: "hour", title: "Stamps collected per hour", buckets: mk((t) => t.getTime(), keys,
+        (k) => { const t = new Date(k), dd = day(t); const s = dd !== lastDay && spanH > 20 ? `${dd} ${hr(t)}` : hr(t); lastDay = dd; return s; },
+        (k) => `${day(new Date(k))}, ${hr(new Date(k))}`) };
+    }
+    if (spanH <= 24 * 31) {
+      const ymd = (t) => `${t.getFullYear()}-${t.getMonth()}-${t.getDate()}`;
+      const keys = [], d0 = new Date(min); d0.setHours(0, 0, 0, 0);
+      for (const t = d0; t.getTime() <= max; t.setDate(t.getDate() + 1)) keys.push(ymd(t));
+      const toDate = (k) => { const [y, m, dd] = k.split("-").map(Number); return new Date(y, m, dd); };
+      return { mode: "day", title: "Stamps collected per day", buckets: mk(ymd, keys, (k) => day(toDate(k)), (k) => toDate(k).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric", year: "numeric" })) };
+    }
+    const all = mk((t) => t.getHours(), [...Array(24).keys()], (h) => hr(new Date(2000, 0, 1, h)), (h) => `${hr(new Date(2000, 0, 1, h))} – ${hr(new Date(2000, 0, 1, h + 1))}`);
+    const used = all.map((b, i) => (b.value || b.regs ? i : -1)).filter((i) => i >= 0);
+    return { mode: "hod", title: "Busiest times of day (all selected events)", buckets: all.slice(Math.min(...used), Math.max(...used) + 1) };
+  }
+
+  function renderReport(d) {
+    const E = d.events, multi = E.length > 1, T = totals(d);
+    const avg = T.players ? T.stamps / T.players : 0;
+    const dates = E.map((e) => e.starts_on).filter(Boolean).sort();
+    const single = !multi && E[0];
+    const head = single
+      ? `<h2>${esc(single.name)}</h2><div class="small muted">${statusPill(single.status)} ${esc([fmtDate(single.starts_on), single.venue].filter(Boolean).join(" · "))} · ${single.booths} booth${single.booths === 1 ? "" : "s"}</div>`
+      : `<h2>Combined report · ${E.length} events</h2><div class="small muted">${dates.length ? esc(fmtDate(dates[0]) + (dates.length > 1 ? " – " + fmtDate(dates[dates.length - 1]) : "")) + " · " : ""}${E.map((e) => esc(e.name)).join(" · ")}</div>`;
+
+    let html = `<div class="rpt-head"><div>${head}</div>
+      <div style="text-align:right"><div class="print-only">${P.orgLogoTag("", "height:40px;max-width:180px;object-fit:contain")}</div>
+      <div class="small muted">Generated ${esc(new Date().toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" }))}</div></div></div>
+      <div class="kpis">
+        <div class="card kpi"><b>${fmtN(T.attendees)}</b><span>Attendees registered</span><small>${multi ? `${fmtN(d.unique_people)} unique people · ${fmtN(d.repeat_people)} came to 2+ events` : `across ${single.booths} booth${single.booths === 1 ? "" : "s"}`}</small></div>
+        <div class="card kpi"><b>${fmtN(T.players)}</b><span>Active players</span><small>${pct(T.players, T.attendees)}% collected at least one stamp</small></div>
+        <div class="card kpi"><b>${fmtN(T.stamps)}</b><span>Stamps collected</span><small>${fmt1(avg)} per active player</small></div>
+        <div class="card kpi"><b>${fmtN(T.qualified)}</b><span>Qualified for draw</span><small>${pct(T.qualified, T.attendees)}% of attendees${single ? ` · ${single.min_stamps}+ stamps needed` : ""}</small></div>
+        <div class="card kpi"><b>${fmtN(T.completed)}</b><span>Visited every booth</span><small>${pct(T.completed, T.attendees)}% of attendees</small></div>
+        <div class="card kpi"><b>${fmtN(T.winners)}</b><span>Winners drawn</span><small>${T.winners ? "listed below" : "none yet"}</small></div>
+      </div>`;
+
+    if (!T.attendees) {
+      $("rBody").innerHTML = html + `<div class="card empty rpt-sec"><h2>No attendees yet</h2><p>Once people register and collect stamps, their activity will appear here.</p></div>`;
+      return;
+    }
+
+    // engagement funnel
+    const funnel = [["Registered", T.attendees], ["Collected a stamp", T.players], ["Qualified for the draw", T.qualified], ["Visited every booth", T.completed]];
+    html += `<div class="card rpt-sec"><h2>Engagement</h2><p class="sub">How far attendees got, as a share of everyone who registered.</p>
+      ${barList(funnel.map(([l, v]) => ({ label: l, value: v, note: `${pct(v, T.attendees)}%`, tip: [[fmtN(v), "attendees"], [`${pct(v, T.attendees)}%`, "of registered"]] })), T.attendees)}</div>`;
+
+    // per-event comparison
+    if (multi) {
+      html += `<div class="card rpt-sec tbl"><h2>Event comparison</h2><p class="sub">Each selected event side by side, with combined totals.</p><div class="table-wrap"><table class="data">
+        <thead><tr><th>Event</th><th>Status</th><th class="num">Booths</th><th class="num">Attendees</th><th class="num">Active</th><th class="num">Stamps</th><th class="num">Avg / player</th><th class="num">Qualified</th><th class="num">Visited all</th><th class="num">Winners</th></tr></thead><tbody>
+        ${E.map((e) => `<tr><td><b>${esc(e.name)}</b><div class="small muted">${esc(fmtDate(e.starts_on) || "")}</div></td><td>${statusPill(e.status)}</td>
+          <td class="num">${e.booths}</td><td class="num">${fmtN(e.attendees)}</td><td class="num">${pct(e.players, e.attendees)}%</td><td class="num">${fmtN(e.stamps)}</td>
+          <td class="num">${fmt1(e.players ? e.stamps / e.players : 0)}</td><td class="num">${fmtN(e.qualified)}</td><td class="num">${pct(e.completed, e.attendees)}%</td><td class="num">${e.winners}</td></tr>`).join("")}
+        <tr class="total"><td>All selected</td><td></td><td class="num">${T.booths}</td><td class="num">${fmtN(T.attendees)}</td><td class="num">${pct(T.players, T.attendees)}%</td><td class="num">${fmtN(T.stamps)}</td>
+          <td class="num">${fmt1(avg)}</td><td class="num">${fmtN(T.qualified)}</td><td class="num">${pct(T.completed, T.attendees)}%</td><td class="num">${T.winners}</td></tr>
+        </tbody></table></div></div>`;
+    }
+
+    // booth traffic
+    const groups = boothGroups(d);
+    html += `<div class="card rpt-sec"><h2>Booth traffic</h2><p class="sub">Stamps collected at each booth. Reach is the share of attendees who visited${multi ? ". Booths with the same name are combined across events." : "."}</p>
+      ${groups.length ? barList(groups.map((g) => ({
+        label: g.name, value: g.visits, note: `${pct(g.visits, g.base)}% reach`,
+        tag: `${multi ? ` <span class="small muted">· ${g.events.size} event${g.events.size === 1 ? "" : "s"}</span>` : ""}${g.hidden && !multi ? ' <span class="pill">Hidden</span>' : ""}`,
+        tip: [[fmtN(g.visits), "stamps"], [`${pct(g.visits, g.base)}%`, "of attendees visited"], ...(multi ? [[String(g.events.size), g.events.size === 1 ? "event" : "events"]] : [])],
+      }))) : '<p class="muted">No booths in the selected events.</p>'}</div>`;
+
+    // activity + distribution
+    const act = activityBuckets(d);
+    const dist = []; const dm = new Map(d.distribution.map((x) => [x.stamps, x.n]));
+    const maxS = Math.max(0, ...d.distribution.map((x) => x.stamps));
+    for (let s = 0; s <= maxS; s++) { const n = dm.get(s) || 0; dist.push({ short: String(s), value: n, tip: { h: `${s} stamp${s === 1 ? "" : "s"}`, r: [[fmtN(n), "attendees"], [`${pct(n, T.attendees)}%`, "of registered"]] } }); }
+    const dataTable = (cols, rows) => `<details><summary>View as table</summary><div class="table-wrap"><table class="data" style="margin-top:8px"><thead><tr>${cols.map((c, i) => `<th class="${i ? "num" : ""}">${c}</th>`).join("")}</tr></thead>
+      <tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i ? "num" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+    html += `<div class="grid2 rpt-sec" style="align-items:start">
+      <div class="card"><h2 style="font-size:1.05rem;margin:0 0 2px">${act ? esc(act.title) : "Activity"}</h2>
+        <p class="sub small muted" style="margin:0 0 14px">${act && act.mode === "hod" ? "Events are far apart, so activity is grouped by hour of day. " : ""}Hover a column for stamps and registrations.</p>
+        ${act && act.buckets.some((b) => b.value) ? columnChart(act.buckets) + dataTable(["Time", "Stamps", "Registrations"], act.buckets.map((b) => [b.tip.h, fmtN(b.value), fmtN(b.regs)])) : '<p class="muted">No stamps collected yet.</p>'}</div>
+      <div class="card"><h2 style="font-size:1.05rem;margin:0 0 2px">Stamps per attendee</h2>
+        <p class="sub small muted" style="margin:0 0 14px">How many attendees ended with each number of stamps${multi ? " (events may have different numbers of booths)" : ""}.</p>
+        ${columnChart(dist)}${dataTable(["Stamps", "Attendees", "% of registered"], dist.map((b) => [b.short, fmtN(b.value), pct(b.value, T.attendees) + "%"]))}</div></div>`;
+
+    // schools
+    const orgs = d.orgs, topOrgs = orgs.slice(0, 15);
+    html += `<div class="card rpt-sec tbl"><h2>Schools & organizations</h2><p class="sub">Where attendees came from${orgs.length > 15 ? ` · top 15 of ${orgs.length}` : ""}${d.no_org ? ` · ${fmtN(d.no_org)} attendee${d.no_org === 1 ? "" : "s"} didn't say` : ""}.</p>
+      ${orgs.length ? `<div class="table-wrap"><table class="data"><thead><tr><th>School / organization</th><th class="num">Attendees</th><th class="num">Active</th><th class="num">Stamps</th><th class="num">Avg / attendee</th>${multi ? '<th class="num">Events</th>' : ""}</tr></thead><tbody>
+        ${topOrgs.map((o) => `<tr><td><b>${esc(o.name)}</b></td><td class="num">${fmtN(o.attendees)}</td><td class="num">${pct(o.players, o.attendees)}%</td><td class="num">${fmtN(o.stamps)}</td><td class="num">${fmt1(o.stamps / o.attendees)}</td>${multi ? `<td class="num">${o.events}</td>` : ""}</tr>`).join("")}
+        </tbody></table></div>` : '<p class="muted">No attendees gave a school or organization.</p>'}</div>`;
+
+    // top attendees + winners
+    html += `<div class="grid2 rpt-sec" style="align-items:start">
+      <div class="card tbl"><h2 style="font-size:1.05rem;margin:0 0 2px">Top attendees</h2><p class="sub small muted" style="margin:0 0 10px">Ranked by points${multi ? " across all selected events (matched by email)" : ""}.</p>
+        ${d.people.length ? `<div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>Name</th>${multi ? '<th class="num">Events</th>' : ""}<th class="num">Stamps</th><th class="num">Points</th></tr></thead><tbody>
+          ${d.people.slice(0, 10).map((p, i) => `<tr><td>${i + 1}</td><td><b>${esc(p.name)}</b> ${p.won ? '<span class="pill accent">Winner</span>' : ""}<div class="small muted">${esc(p.org || p.email)}</div></td>
+            ${multi ? `<td class="num">${p.events}</td>` : ""}<td class="num">${p.stamps}</td><td class="num"><b>${p.points}</b></td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">No stamps collected yet.</p>'}</div>
+      <div class="card tbl"><h2 style="font-size:1.05rem;margin:0 0 2px">Winners</h2><p class="sub small muted" style="margin:0 0 10px">${d.winners.length} drawn.</p>
+        ${d.winners.length ? `<div class="table-wrap"><table class="data"><thead><tr><th>Winner</th>${multi ? "<th>Event</th>" : ""}<th>Prize</th></tr></thead><tbody>
+          ${d.winners.map((w) => `<tr><td><b>${esc(w.first_name)} ${esc(w.last_name)}</b><div class="small muted">${esc(w.email)}</div></td>
+            ${multi ? `<td class="small">${esc((E.find((e) => e.id === w.event_id) || {}).name || "")}</td>` : ""}<td class="small">${esc(w.prize || "—")}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">No winners drawn yet.</p>'}</div></div>`;
+
+    $("rBody").innerHTML = html;
+  }
+
+  // ---------- report exports ----------
+  const rptName = () => {
+    const E = rptData.events;
+    return E.length === 1 ? E[0].slug : `combined-${E.length}-events`;
+  };
+  function csvDownload(name, head, rows) {
+    downloadFile(name, "﻿" + [head, ...rows].map((r) => r.map(csvCell).join(",")).join("\n"), "text/csv");
+  }
+  function exportSummary() {
+    if (!rptData) return toast("Choose at least one event first.", "err");
+    const d = rptData, T = totals(d);
+    const row = (name, slug, status, date, venue, x) => [name, slug, status, date, venue, x.booths, x.attendees, x.players, pct(x.players, x.attendees) + "%",
+      x.stamps, fmt1(x.players ? x.stamps / x.players : 0), x.points, x.qualified, x.completed, pct(x.completed, x.attendees) + "%", x.winners];
+    const rows = d.events.map((e) => row(e.name, e.slug, STATUS[e.status].label, e.starts_on || "", e.venue || "", e));
+    if (d.events.length > 1) rows.push(row(`All selected (${d.unique_people} unique people, ${d.repeat_people} at 2+ events)`, "", "", "", "", T));
+    csvDownload(`${rptName()}-summary.csv`, ["Event", "Link name", "Status", "Start date", "Venue", "Booths", "Attendees", "Active players", "Active %",
+      "Stamps", "Avg stamps per player", "Points", "Qualified for draw", "Visited every booth", "Completion %", "Winners"], rows);
+  }
+  function exportBooths() {
+    if (!rptData) return toast("Choose at least one event first.", "err");
+    const multi = rptData.events.length > 1;
+    const names = Object.fromEntries(rptData.events.map((e) => [e.id, e.name]));
+    csvDownload(`${rptName()}-booths.csv`, ["Booth", "Events", "Stamps collected", "Attendees at those events", "Reach %"],
+      boothGroups(rptData).map((g) => [g.name + (g.hidden && !multi ? " (hidden)" : ""), [...g.events].map((id) => names[id]).join("; "), g.visits, g.base, pct(g.visits, g.base) + "%"]));
+  }
+  async function exportAttendees() {
+    if (!rptData) return toast("Choose at least one event first.", "err");
+    const { data, error } = await sb.rpc("report_attendees", { p_events: rptData.events.map((e) => e.id) });
+    if (error) return fail(error, "Export failed");
+    csvDownload(`${rptName()}-attendees.csv`, ["Event", "First name", "Last name", "Email", "School / organization", "Registered", "Stamps", "Points", "Winner", "Booths visited"],
+      data.map((a) => [a.event_name, a.first_name, a.last_name, a.email, a.organization, new Date(a.registered_at).toISOString(), a.stamps, a.points, a.winner ? "Yes" : "", a.booths_visited]));
+  }
+
+  boot();
+})().catch((err) => {
+  console.error(err);
+  const box = document.createElement("div");
+  box.className = "card"; box.setAttribute("role", "alert");
+  box.style.cssText = "max-width:520px;margin:24px auto;text-align:center";
+  box.innerHTML = '<h2>Something went wrong</h2><p class="muted"></p><button class="btn" type="button" onclick="location.reload()">Reload page</button>';
+  box.querySelector("p").textContent = (err && err.message) || String(err);
+  (document.getElementById("page") || document.querySelector("main") || document.body).replaceChildren(box);
+});
+</script>
+</body>
+</html>

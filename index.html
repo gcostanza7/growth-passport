@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#003B71">
+<title>Event Passport</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=2026.10.22b">
+<style>
+  body { min-height: 100vh; padding-bottom: 110px; }
+  .hero { background: var(--brand); color: #fff; padding: 22px 18px 64px; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; right: -90px; top: -110px; width: 200px; height: 200px; border-radius: 50%;
+    background: var(--accent); opacity: .9; }
+  .hero-inner { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; }
+  .hero .logos { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .hero .ev-logo { height: 44px; width: auto; max-width: 180px; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px 8px; }
+  .hero h1 { font-size: 1.6rem; font-weight: 800; margin: 0; }
+  .hero .meta { opacity: .85; font-size: .92rem; margin-top: 4px; }
+  .wrap { max-width: 560px; margin: -44px auto 0; padding: 0 16px; position: relative; z-index: 2; }
+
+  .tabs { display: flex; gap: 6px; background: var(--surface); padding: 5px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .tabs button { flex: 1; min-width: 0; border: 0; background: transparent; padding: 10px 2px; border-radius: 9px; font: 700 .86rem var(--font); color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .tabs button[aria-selected=true] { background: var(--brand); color: #fff; }
+
+  .progress-card h2 { font-size: 1.15rem; margin-bottom: 2px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 12px; }
+  .stat { background: var(--bg); border-radius: 10px; padding: 10px; text-align: center; }
+  .stat b { display: block; font-size: 1.5rem; font-weight: 800; color: var(--brand); line-height: 1.1; }
+  .stat span { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+  .bar { height: 10px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), var(--accent)); border-radius: 99px; transition: width .6s ease; }
+  .qualify { margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-weight: 600; font-size: .92rem; background: color-mix(in srgb, var(--accent) 10%, #fff); color: color-mix(in srgb, var(--accent) 80%, #000); }
+  .qualify.done { background: #E3F4EC; color: var(--ok); }
+  .winner { background: linear-gradient(135deg, #FFD54A, #FFB300); color: #3A2A00; padding: 14px; border-radius: 12px; font-weight: 800; text-align: center; margin-bottom: 14px; }
+
+  .stamps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 10px; margin-top: 6px; }
+  .stamp { text-align: center; }
+  .stamp .disc { width: 84px; height: 84px; margin: 0 auto 6px; border-radius: 50%; display: grid; place-items: center; position: relative;
+    border: 2px dashed var(--line); background: #fff; overflow: hidden; }
+  .stamp .disc img { width: 70%; height: 70%; object-fit: contain; filter: grayscale(1); opacity: .35; }
+  .stamp .disc .logo-ph { width: 100%; height: 100%; font-size: 1.3rem; opacity: .35; background: #fff; }
+  .stamp .name { font-size: .78rem; font-weight: 600; color: var(--muted); line-height: 1.2; }
+  .stamp .num { display: block; font-size: .7rem; font-weight: 700; color: var(--muted); opacity: .8; margin-top: 2px; }
+  /* floor plan */
+  .zb { width: 36px; height: 36px; border-radius: 9px; border: 1.5px solid var(--line); background: #fff; font: 700 1.15rem var(--font); color: var(--brand); cursor: pointer; }
+  .mapview { overflow: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; max-height: 62vh; -webkit-overflow-scrolling: touch; }
+  .mapinner { position: relative; min-width: 100%; }
+  .mapinner img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+  .mpin { position: absolute; transform: translate(-50%, -50%); min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px; border: 2px solid var(--brand);
+    background: #fff; color: var(--brand); font: 800 .7rem/22px var(--font); box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: pointer; white-space: nowrap; }
+  .mpin::before { content: ""; position: absolute; inset: -9px; }             /* bigger tap target */
+  .mpin.on { background: var(--accent); border-color: #fff; color: #fff; }
+  .mpin.on::after { content: "✓"; position: absolute; right: -7px; top: -8px; width: 15px; height: 15px; border-radius: 50%; background: var(--ok); color: #fff;
+    font-size: 9px; line-height: 15px; text-align: center; border: 1.5px solid #fff; }
+  .mpin.sel { z-index: 3; box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent), 0 2px 6px rgba(0,0,0,.3); transform: translate(-50%, -50%) scale(1.15); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; border: 2px solid var(--brand); background: #fff; }
+  .legend i.v { background: var(--accent); border-color: var(--accent); }
+  .pinsheet:not(:empty) { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+  /* vendors */
+  .vsearch { margin: 10px 0 4px; }
+  .vend { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+  .vend:last-child { border-bottom: 0; }
+  .vlogo { width: 52px; height: 52px; flex: none; border-radius: 50%; border: 1.5px solid var(--line); background: #fff; display: grid; place-items: center; overflow: hidden; }
+  .vlogo img { width: 74%; height: 74%; object-fit: contain; }
+  .vlogo .logo-ph { width: 100%; height: 100%; font-size: .95rem; }
+  .vbody { flex: 1; min-width: 0; }
+  .vname { font-weight: 800; line-height: 1.25; }
+  .vmeta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .vbody p { margin: 6px 0 0; font-size: .88rem; color: var(--muted); }
+  .vlinks { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; font-size: .88rem; font-weight: 600; }
+  .vlinks a { text-decoration: none; }
+  .vlinks .linkbtn { padding: 0; font-size: .88rem; text-decoration: none; }
+  .stamp.on .disc { border: 3px solid var(--accent); transform: rotate(-8deg); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent); }
+  .stamp.on .disc img { filter: none; opacity: 1; }
+  .stamp.on .disc .logo-ph { opacity: 1; background: color-mix(in srgb, var(--brand) 12%, #fff); }
+  .stamp.on .name { color: var(--ink); }
+  .stamp .tick { position: absolute; right: 2px; bottom: 2px; width: 24px; height: 24px; border-radius: 50%; background: var(--ok); color: #fff;
+    display: grid; place-items: center; font-size: 14px; font-weight: 900; transform: rotate(8deg); }
+
+  .scanbar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--bg) 30%); z-index: 20; }
+  .scanbar .btn { max-width: 528px; margin: 0 auto; display: flex; font-size: 1.1rem; min-height: 56px; border-radius: 14px; box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 40%, transparent); }
+
+  .lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+  .lb-row:last-child { border-bottom: 0; }
+  .lb-rank { width: 34px; height: 34px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font-weight: 800; color: var(--muted); flex: none; }
+  .lb-row.top .lb-rank { background: var(--accent); color: #fff; }
+  .lb-name { font-weight: 700; }
+  .lb-pts { margin-left: auto; text-align: right; font-weight: 800; color: var(--brand); }
+  .lb-pts small { display: block; font-weight: 500; color: var(--muted); font-size: .75rem; }
+
+  /* scanner */
+  .scanner { position: fixed; inset: 0; background: #000; z-index: 600; display: flex; flex-direction: column; }
+  .scanner video { flex: 1; width: 100%; object-fit: cover; }
+  .scanner .frame { position: absolute; left: 50%; top: 45%; width: min(70vw, 300px); aspect-ratio: 1; transform: translate(-50%,-50%);
+    border-radius: 24px; box-shadow: 0 0 0 9999px rgba(0,0,0,.45); border: 3px solid #fff; }
+  .scanner .top { position: absolute; top: 0; left: 0; right: 0; padding: calc(14px + env(safe-area-inset-top)) 16px 14px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+  .scanner .bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); color: #fff; text-align: center; }
+  .scanner .close { background: rgba(255,255,255,.2); color: #fff; border: 0; width: 44px; height: 44px; border-radius: 50%; font-size: 22px; cursor: pointer; }
+
+  /* stamp celebration */
+  .celebrate { position: fixed; inset: 0; background: rgba(10,20,30,.7); z-index: 700; display: grid; place-items: center; padding: 20px; }
+  .celebrate .box { background: #fff; border-radius: 20px; padding: 28px 22px; text-align: center; width: min(360px, 100%); }
+  .celebrate .big { width: 140px; height: 140px; margin: 0 auto 16px; border-radius: 50%; border: 5px solid var(--accent); display: grid; place-items: center; overflow: hidden; background: #fff;
+    animation: slam .55s cubic-bezier(.2,1.6,.4,1) both; }
+  .celebrate .big img { width: 72%; height: 72%; object-fit: contain; }
+  .celebrate .big .logo-ph { width: 100%; height: 100%; font-size: 2.4rem; }
+  @keyframes slam { 0% { transform: scale(2.4) rotate(-30deg); opacity: 0; } 100% { transform: scale(1) rotate(-8deg); opacity: 1; } }
+  .celebrate h2 { font-size: 1.4rem; }
+  .plus { display: inline-block; background: var(--accent); color: #fff; font-weight: 800; padding: 4px 12px; border-radius: 99px; margin-bottom: 10px; }
+
+  .ev-list a { display: block; padding: 14px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); text-decoration: none; color: var(--ink); margin-bottom: 10px; font-weight: 700; }
+  .foot { text-align: center; margin: 24px 0 8px; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="logos" id="logos"><img id="evLogo" class="ev-logo hidden" alt=""></div>
+    <h1 id="evName">Event Passport</h1>
+    <div class="meta" id="evMeta"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="loading" class="card"><p class="muted">Loading…</p></div>
+
+  <!-- choose event -->
+  <section id="vChoose" class="hidden">
+    <div class="card"><h2>Choose your event</h2><div id="evList" class="ev-list"></div></div>
+  </section>
+
+  <section id="vMissing" class="hidden card">
+    <h2>Event not found</h2>
+    <p class="muted">This event isn't open right now. Check the link or QR code you used.</p>
+  </section>
+
+  <section id="vSoon" class="hidden"><div class="card" style="text-align:center">
+    <div style="font-size:2.4rem">🎟️</div>
+    <h2>Opening soon</h2>
+    <p class="muted" id="soonText">The passport for this event isn't open yet. Check back when the event starts!</p>
+  </div>
+    <div id="soonMap" style="margin-top:14px"></div><div id="soonVendors" style="margin-top:14px"></div>
+  </section>
+
+  <div id="statusNote" class="card hidden" style="margin-bottom:14px;font-weight:600"></div>
+
+  <!-- register -->
+  <section id="vRegister" class="hidden">
+    <div class="card">
+      <div id="regNew">
+        <h2>Get your passport</h2>
+        <p class="muted" id="regIntro">Visit booths, answer a question and scan their code to collect stamps.</p>
+        <form id="regForm" novalidate>
+          <div class="row"><div class="field grow"><label for="fFirst">First name</label><input id="fFirst" type="text" autocomplete="given-name" required maxlength="60"></div>
+          <div class="field grow"><label for="fLast">Last name</label><input id="fLast" type="text" autocomplete="family-name" required maxlength="60"></div></div>
+          <div class="field"><label for="fEmail">Email</label><input id="fEmail" type="email" autocomplete="email" inputmode="email" required maxlength="254"></div>
+          <div class="field"><label for="fOrg">School or organization <span class="muted">(optional)</span></label><input id="fOrg" type="text" autocomplete="organization" maxlength="120"></div>
+          <button class="btn accent block" type="submit" id="regBtn">Start collecting stamps</button>
+        </form>
+        <p class="small muted" style="text-align:center;margin-top:12px">Already registered on another device? <button class="linkbtn" id="toResume" type="button">Continue with your email</button></p>
+      </div>
+      <div id="regResume" class="hidden">
+        <h2>Welcome back</h2>
+        <p class="muted">Enter the email you registered with to open your passport.</p>
+        <form id="resumeForm" novalidate>
+          <div class="field"><label for="rEmail">Email</label><input id="rEmail" type="email" autocomplete="email" inputmode="email" required></div>
+          <button class="btn block" type="submit">Open my passport</button>
+        </form>
+        <p class="small" style="text-align:center;margin-top:12px"><button class="linkbtn" id="toNew" type="button">New here? Register</button></p>
+      </div>
+      <p class="small muted" style="margin-top:14px">Your name (first name and last initial) may appear on the event leaderboard. Your email is only used by the organizers to contact prize winners.</p>
+    </div>
+  </section>
+
+  <!-- passport -->
+  <section id="vPassport" class="hidden">
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" aria-selected="true" data-tab="passport">Passport</button>
+      <button role="tab" aria-selected="false" data-tab="map" id="tabMap">Map</button>
+      <button role="tab" aria-selected="false" data-tab="vendors" id="tabVendors">Vendors</button>
+      <button role="tab" aria-selected="false" data-tab="board" id="tabBoard">Ranking</button>
+    </div>
+
+    <div id="pPassport">
+      <div id="winnerBanner" class="winner hidden">🎉 You've been drawn as a winner! See the organizers to claim your prize.</div>
+      <div class="card progress-card">
+        <h2 id="hello">Hi!</h2>
+        <div class="muted small" id="progressText"></div>
+        <div class="stats">
+          <div class="stat"><b id="sStamps">0</b><span>Stamps</span></div>
+          <div class="stat"><b id="sPoints">0</b><span>Points</span></div>
+          <div class="stat"><b id="sRank">–</b><span>Rank</span></div>
+        </div>
+        <div class="bar" aria-hidden="true"><i id="barFill" style="width:0"></i></div>
+        <div id="qualify" class="qualify hidden"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h2 style="font-size:1.05rem">Booth stamps</h2>
+        <div class="stamps" id="stampGrid"></div>
+      </div>
+      <p class="foot small muted"><span id="whoami"></span> · <button class="linkbtn" id="signOut" type="button">Not you?</button></p>
+    </div>
+
+    <div id="pMap" class="hidden"></div>
+    <div id="pVendors" class="hidden"></div>
+
+    <div id="pBoard" class="hidden">
+      <div class="card">
+        <div class="row"><h2 class="grow" style="font-size:1.1rem;margin:0">Top players</h2><span class="small muted" id="myRankNote"></span></div>
+        <div id="board" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="scanbar hidden" id="scanbar"><button class="btn accent block" id="scanBtn" type="button">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg>
+  Scan booth code</button></div>
+
+<!-- scanner overlay -->
+<div class="scanner hidden" id="scanner" role="dialog" aria-label="Scan booth QR code">
+  <video id="video" playsinline muted></video>
+  <div class="frame"></div>
+  <div class="top"><b>Scan the booth's QR code</b><button class="close" id="scanClose" aria-label="Close">✕</button></div>
+  <div class="bottom">
+    <p id="scanMsg" style="margin:0 0 10px">Point your camera at the code the booth shows you.</p>
+    <button class="btn ghost sm" style="color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)" id="typeCode" type="button">Type the code instead</button>
+  </div>
+  <canvas id="canvas" class="hidden"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
+<script src="config.js?v=2026.10.22b"></script>
+<script src="common.js?v=2026.10.22b"></script>
+<script>
+(async function () {
+  const { sb, esc, logoUrl, initials, applyTheme, toast, fmtDate } = P;
+  const $ = (id) => document.getElementById(id);
+  $("logos").insertAdjacentHTML("afterbegin", P.orgLogoTag("ev-logo"));
+  const params = new URLSearchParams(location.search);
+  let slug = (params.get("e") || "").toLowerCase();
+  let ev = null, token = null, passport = null;
+
+  // --- floor plan & vendors ---
+  const ZOOMS = [1, 1.5, 2, 3, 4];
+  let mapZoom = 1, mapSel = null;
+  const visited = () => new Set(passport ? passport.stamps.map((x) => x.booth_id) : []);
+  const pinText = (b) => b.booth_number || initials(b.name);
+  const mapRoot = () => (ev.status === "ready" ? $("soonMap") : $("pMap"));
+  const vendorRoot = () => (ev.status === "ready" ? $("soonVendors") : $("pVendors"));
+
+  function vendorHtml(b, st, withMapLink) {
+    const img = b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="" loading="lazy">` : `<div class="logo-ph">${esc(initials(b.name))}</div>`;
+    const web = P.safeUrl(b.website || "");
+    const onMap = withMapLink && ev.floorplan_path && b.map_x != null;
+    return `<div class="vend"><div class="vlogo">${img}</div><div class="vbody">
+      <div class="vname">${esc(b.name)}</div>
+      <div class="vmeta">${b.booth_number ? `<span class="pill brand">Booth ${esc(b.booth_number)}</span>` : ""}${passport ? (st.has(b.id) ? '<span class="pill ok">✓ Visited</span>' : '<span class="pill">Not visited yet</span>') : ""}</div>
+      ${web || onMap ? `<div class="vlinks">${onMap ? `<button class="linkbtn" type="button" data-showmap="${b.id}">📍 Show on map</button>` : ""}${web ? `<a href="${esc(web)}" target="_blank" rel="noopener noreferrer">Website ↗</a>` : ""}</div>` : ""}
+    </div></div>`;
+  }
+
+  function mountMap(root) {
+    if (!ev.floorplan_path) { root.innerHTML = ""; return; }
+    root.innerHTML = `<div class="card"><div class="row"><h2 class="grow" style="font-size:1.05rem;margin:0">Floor plan</h2>
+        <button class="zb" type="button" data-mz="-1" aria-label="Zoom out">−</button><button class="zb" type="button" data-mz="1" aria-label="Zoom in">+</button></div>
+      <div class="mapview"><div class="mapinner" style="width:${mapZoom * 100}%"><img src="${esc(P.floorplanUrl(ev.floorplan_path))}" alt="Event floor plan" draggable="false"
+        ${ev.floorplan_w ? `width="${ev.floorplan_w}" height="${ev.floorplan_h}"` : ""}><div class="mpins"></div></div></div>
+      <div class="legend small muted">${passport ? '<span><i class="v"></i>Visited</span><span><i></i>Not visited yet</span>' : ""}<span>Tap a booth to see who's there.</span></div>
+      <div class="pinsheet" aria-live="polite"></div></div>`;
+    const view = root.querySelector(".mapview"), inner = root.querySelector(".mapinner");
+    root.querySelectorAll("[data-mz]").forEach((b) => (b.onclick = () => {
+      const cx = (view.scrollLeft + view.clientWidth / 2) / inner.offsetWidth, cy = (view.scrollTop + view.clientHeight / 2) / inner.offsetHeight;
+      const i = Math.max(0, Math.min(ZOOMS.length - 1, ZOOMS.indexOf(mapZoom) + Number(b.dataset.mz)));
+      mapZoom = ZOOMS[i]; inner.style.width = mapZoom * 100 + "%";
+      view.scrollLeft = cx * inner.offsetWidth - view.clientWidth / 2; view.scrollTop = cy * inner.offsetHeight - view.clientHeight / 2;
+    }));
+    drawPins(root);
+  }
+  function drawPins(root) {
+    if (!root || !root.querySelector(".mpins")) return;
+    const st = visited();
+    root.querySelector(".mpins").innerHTML = ev.booths.filter((b) => b.map_x != null).map((b) =>
+      `<button type="button" class="mpin ${st.has(b.id) ? "on" : ""} ${b.id === mapSel ? "sel" : ""}" data-b="${b.id}" style="left:${b.map_x * 100}%;top:${b.map_y * 100}%"
+        aria-label="${esc(b.name)}${b.booth_number ? ", booth " + esc(b.booth_number) : ""}${st.has(b.id) ? ", visited" : ""}">${esc(pinText(b))}</button>`).join("");
+    root.querySelectorAll(".mpin").forEach((p) => (p.onclick = () => { mapSel = mapSel === p.dataset.b ? null : p.dataset.b; drawPins(root); }));
+    const sel = ev.booths.find((b) => b.id === mapSel);
+    root.querySelector(".pinsheet").innerHTML = sel ? vendorHtml(sel, st, false) : "";
+  }
+  function focusPin(id) {
+    mapSel = id;
+    if (ev.status !== "ready") selectTab("map");
+    const root = mapRoot(); drawPins(root);
+    const view = root.querySelector(".mapview"), b = ev.booths.find((x) => x.id === id);
+    if (mapZoom < 2) { mapZoom = 2; root.querySelector(".mapinner").style.width = "200%"; }
+    requestAnimationFrame(() => {
+      const inner = root.querySelector(".mapinner");
+      view.scrollLeft = b.map_x * inner.offsetWidth - view.clientWidth / 2;
+      view.scrollTop = b.map_y * inner.offsetHeight - view.clientHeight / 2;
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function mountVendors(root) {
+    const list = [...ev.booths].sort(P.boothSort);
+    if (!list.length) { root.innerHTML = '<div class="card"><p class="muted" style="margin:0">Vendors will be listed here soon.</p></div>'; return; }
+    root.innerHTML = `<div class="card"><div class="row"><h2 class="grow" style="font-size:1.05rem;margin:0">Participating vendors</h2><span class="pill">${list.length}</span></div>
+      ${list.length > 6 ? '<input class="vsearch" type="search" placeholder="Search by name or booth number" aria-label="Search vendors">' : ""}
+      <div class="vlist"></div></div>`;
+    const draw = () => {
+      const q = (root.querySelector(".vsearch") || {}).value?.trim().toLowerCase() || "", st = visited();
+      const rows = list.filter((b) => !q || `${b.name} ${b.booth_number || ""}`.toLowerCase().includes(q));
+      root.querySelector(".vlist").innerHTML = rows.map((b) => vendorHtml(b, st, true)).join("") || '<p class="muted">No vendors match.</p>';
+      root.querySelectorAll("[data-showmap]").forEach((x) => (x.onclick = () => focusPin(x.dataset.showmap)));
+    };
+    const box = root.querySelector(".vsearch"); if (box) box.oninput = draw;
+    root._draw = draw; draw();
+  }
+  function refreshExplore() {
+    drawPins(mapRoot());
+    const v = vendorRoot(); if (v && v._draw) v._draw();
+  }
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+
+  function show(id) {
+    ["loading", "vChoose", "vMissing", "vSoon", "vRegister", "vPassport"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
+    $("scanbar").classList.toggle("hidden", id !== "vPassport" || !ev || ev.status !== "active");
+    $("statusNote").classList.toggle("hidden", !ev || !["paused", "completed"].includes(ev.status) || !["vRegister", "vPassport"].includes(id));
+  }
+
+  // --- booth code in the URL (scanned with the phone's own camera) ---
+  const urlCode = params.get("b");
+  if (urlCode) {
+    sessionStorage.setItem("pendingCode", urlCode);
+    params.delete("b");
+    history.replaceState(null, "", location.pathname + "?" + params.toString());
+  }
+
+  // --- no event chosen ---
+  if (!slug) {
+    const { data } = await sb.rpc("list_active_events");
+    if (data && data.length === 1) { slug = data[0].slug; history.replaceState(null, "", "?e=" + slug); }
+    else {
+      $("evList").innerHTML = (data || []).map((e) =>
+        `<a href="?e=${encodeURIComponent(e.slug)}">${esc(e.name)}<div class="small muted">${esc([fmtDate(e.starts_on), e.venue].filter(Boolean).join(" · "))}</div></a>`
+      ).join("") || '<p class="muted">No events are open right now.</p>';
+      show("vChoose");
+      return;
+    }
+  }
+
+  const { data: evData, error: evErr } = await sb.rpc("get_event", { p_slug: slug });
+  if (evErr || !evData) { show("vMissing"); return; }
+  ev = evData;
+  applyTheme(ev);
+  document.querySelector('meta[name=theme-color]').content = ev.primary_color;
+  document.title = ev.name + " · Passport";
+  $("evName").textContent = ev.name;
+  $("evMeta").textContent = [fmtDate(ev.starts_on), ev.venue].filter(Boolean).join(" · ");
+  if (ev.logo_path) { $("evLogo").src = logoUrl(ev.logo_path); $("evLogo").alt = ev.name; $("evLogo").classList.remove("hidden"); }
+  if (ev.welcome_text) $("regIntro").textContent = ev.welcome_text;
+  if (!ev.show_leaderboard) $("tabBoard").classList.add("hidden");
+  if (!ev.floorplan_path) $("tabMap").classList.add("hidden");
+
+  if (ev.status === "ready") {
+    if (ev.starts_on) $("soonText").textContent = `The passport opens on ${fmtDate(ev.starts_on)}. Check back when the event starts!`;
+    show("vSoon");
+    if (ev.booths.length || ev.floorplan_path) {
+      mountMap($("soonMap")); mountVendors($("soonVendors"));
+      if (ev.booths.length) $("soonText").textContent += " In the meantime, here's who you'll meet.";
+    }
+    return;
+  }
+  if (ev.status === "paused") $("statusNote").textContent = "⏸ Stamp collecting is paused for the moment. Your stamps are safe — check back soon.";
+  if (ev.status === "completed") $("statusNote").textContent = "🏁 This event has ended. Thanks for playing — here are your final results.";
+  if (!ev.registration_open) {
+    $("regNew").classList.add("hidden"); $("regResume").classList.remove("hidden");
+    $("toNew").parentElement.classList.add("hidden");
+    $("regResume").querySelector("h2").textContent = ev.status === "active" ? "Sign-up is closed" : "Welcome back";
+    $("regResume").querySelector("p").textContent = "New sign-ups are closed. If you already have a passport, enter the email you registered with.";
+  }
+
+  const tokenKey = "passport:" + ev.slug;
+  token = store.get(tokenKey);
+
+  // --- registration ---
+  $("toResume").onclick = () => { $("regNew").classList.add("hidden"); $("regResume").classList.remove("hidden"); $("rEmail").focus(); };
+  $("toNew").onclick = () => { $("regResume").classList.add("hidden"); $("regNew").classList.remove("hidden"); };
+
+  async function register(first, last, email, org) {
+    const { data, error } = await sb.rpc("register_attendee", { p_slug: ev.slug, p_first: first, p_last: last, p_email: email, p_org: org });
+    if (error) { toast("Something went wrong. Please try again.", "err"); return; }
+    const msgs = { bad_email: "Please enter a valid email address.", closed: "Registration for this event is closed.",
+      need_name: "We couldn't find that email. Please register with your name.", no_event: "This event isn't open." };
+    if (msgs[data.status]) {
+      toast(msgs[data.status], "err");
+      if (data.status === "need_name") { $("toNew").click(); $("fEmail").value = email; $("fFirst").focus(); }
+      return;
+    }
+    token = data.token;
+    store.set(tokenKey, token);
+    if (data.status === "resumed") toast("Welcome back, " + data.first_name + "!", "ok");
+    await openPassport();
+  }
+
+  $("regForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const f = $("fFirst").value.trim(), l = $("fLast").value.trim(), em = $("fEmail").value.trim();
+    if (!f || !l || !em) { toast("Please fill in your name and email.", "err"); return; }
+    $("regBtn").disabled = true;
+    await register(f, l, em, $("fOrg").value.trim());
+    $("regBtn").disabled = false;
+  };
+  $("resumeForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const em = $("rEmail").value.trim();
+    if (!em) return;
+    await register("", "", em, null);
+  };
+  $("signOut").onclick = () => {
+    if (!confirm("Sign out of this passport on this device? You can get back in with your email.")) return;
+    store.del(tokenKey); token = null; show("vRegister");
+  };
+
+  // --- passport ---
+  async function loadPassport() {
+    const { data, error } = await sb.rpc("get_passport", { p_token: token });
+    if (error) { toast("Couldn't load your passport. Check your connection.", "err"); return false; }
+    if (!data) { store.del(tokenKey); token = null; show("vRegister"); return false; }
+    passport = data;
+    renderPassport();
+    return true;
+  }
+
+  function renderPassport() {
+    const stamped = new Map(passport.stamps.map((s) => [s.booth_id, s.at]));
+    const total = ev.booths.length, have = ev.booths.filter((b) => stamped.has(b.id)).length;
+    $("hello").textContent = "Hi " + passport.first_name + "!";
+    $("whoami").textContent = passport.first_name + " " + passport.last_name;
+    $("progressText").textContent = total ? `${have} of ${total} booths visited` : "Booths will appear here soon.";
+    $("sStamps").textContent = have;
+    $("sPoints").textContent = passport.points;
+    $("sRank").textContent = passport.points > 0 ? "#" + passport.rank : "–";
+    $("barFill").style.width = total ? (100 * have / total) + "%" : "0";
+    $("winnerBanner").classList.toggle("hidden", !passport.is_winner);
+
+    const q = $("qualify"), min = ev.min_stamps_to_qualify;
+    const prize = ev.prize_text ? " for " + ev.prize_text : "";
+    if (min > 0 || ev.prize_text) {
+      q.classList.remove("hidden");
+      if (have >= min) { q.className = "qualify done"; q.textContent = "✓ You're entered in the prize draw" + prize + "!"; }
+      else { const n = min - have; q.className = "qualify"; q.textContent = `Collect ${n} more stamp${n === 1 ? "" : "s"} to enter the prize draw${prize}.`; }
+    } else q.classList.add("hidden");
+
+    $("stampGrid").innerHTML = ev.booths.map((b) => {
+      const on = stamped.has(b.id);
+      const img = b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="" loading="lazy">` : `<div class="logo-ph">${esc(initials(b.name))}</div>`;
+      return `<div class="stamp ${on ? "on" : ""}"><div class="disc">${img}${on ? '<span class="tick" aria-hidden="true">✓</span>' : ""}</div>
+        <div class="name">${esc(b.name)}${b.booth_number ? `<span class="num">Booth ${esc(b.booth_number)}</span>` : ""}</div><span class="hidden">${on ? "visited" : "not visited"}</span></div>`;
+    }).join("");
+    refreshExplore();
+  }
+
+  async function openPassport() {
+    show("vPassport");
+    const ok = await loadPassport();
+    if (!ok) return;
+    const pending = sessionStorage.getItem("pendingCode");
+    if (pending) { sessionStorage.removeItem("pendingCode"); await claim(pending); }
+  }
+
+  // --- leaderboard ---
+  async function loadBoard() {
+    const { data, error } = await sb.rpc("get_leaderboard", { p_slug: ev.slug, p_limit: 25 });
+    if (error || !data) { $("board").innerHTML = '<p class="muted">Leaderboard unavailable.</p>'; return; }
+    $("myRankNote").textContent = passport && passport.points > 0 ? `You're #${passport.rank} of ${passport.total_players}` : "";
+    $("board").innerHTML = data.length ? data.map((r) => `<div class="lb-row ${r.rank <= 3 ? "top" : ""}">
+      <div class="lb-rank">${r.rank}</div><div><div class="lb-name">${esc(r.display_name)}</div><div class="small muted">${esc(r.organization || "")}</div></div>
+      <div class="lb-pts">${r.points}<small>${r.stamps} stamp${r.stamps === 1 ? "" : "s"}</small></div></div>`).join("")
+      : '<p class="muted">No stamps collected yet — be the first!</p>';
+  }
+
+  const PANELS = { passport: "pPassport", map: "pMap", vendors: "pVendors", board: "pBoard" };
+  let tab = "passport";
+  function selectTab(name) {
+    tab = name;
+    document.querySelectorAll("#tabs button").forEach((x) => x.setAttribute("aria-selected", x.dataset.tab === name));
+    Object.entries(PANELS).forEach(([k, id]) => $(id).classList.toggle("hidden", k !== name));
+    if (name === "board") loadBoard();
+    if (name === "map" && !$("pMap").firstChild) mountMap($("pMap"));
+    if (name === "vendors" && !$("pVendors").firstChild) mountVendors($("pVendors"));
+  }
+  document.querySelectorAll("#tabs button").forEach((b) => (b.onclick = () => selectTab(b.dataset.tab)));
+
+
+  // --- claiming a stamp ---
+  function codeFrom(text) {
+    text = String(text || "").trim();
+    try { const u = new URL(text); const b = u.searchParams.get("b"); if (b) return b; } catch (e) {}
+    return /^[a-z0-9]{4,40}$/i.test(text) ? text : null;
+  }
+
+  async function claim(raw) {
+    const code = codeFrom(raw);
+    if (!code) { toast("That QR code isn't a booth code.", "err"); return; }
+    const { data, error } = await sb.rpc("claim_stamp", { p_token: token, p_code: code });
+    if (error) { toast("Couldn't record that stamp. Check your connection and try again.", "err"); return; }
+    const msgs = { invalid: "That code isn't valid. Ask the booth to show it again.", wrong_event: "That code is for a different event.",
+      closed: "This event has ended — no more stamps can be collected.", paused: "Stamp collecting is paused right now. Try again soon!",
+      no_attendee: "Your passport wasn't found. Please register again." };
+    if (msgs[data.status]) { toast(msgs[data.status], "err"); if (data.status === "no_attendee") { store.del(tokenKey); show("vRegister"); } return; }
+    await loadPassport();
+    celebrate(data.booth, data.status === "stamped");
+  }
+
+  function celebrate(b, isNew) {
+    const el = document.createElement("div");
+    el.className = "celebrate";
+    const img = b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="">` : `<div class="logo-ph">${esc(initials(b.name))}</div>`;
+    el.innerHTML = `<div class="box" role="dialog" aria-live="polite"><div class="big">${img}</div>
+      ${isNew ? `<div class="plus">+${b.points} point${b.points === 1 ? "" : "s"}</div><h2>Stamp collected!</h2>` : "<h2>Already stamped</h2>"}
+      <p class="muted">${esc(b.name)}${b.booth_number ? " · Booth " + esc(b.booth_number) : ""}</p><button class="btn block" type="button">Keep exploring</button></div>`;
+    document.body.appendChild(el);
+    el.querySelector("button").onclick = () => el.remove();
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    if (isNew && window.confetti) setTimeout(() => confetti({ particleCount: 120, spread: 80, origin: { y: .55 }, colors: [ev.primary_color, ev.accent_color, "#ffffff"] }), 350);
+  }
+
+  // --- camera scanner ---
+  let stream = null, scanning = false, detector = null;
+  if ("BarcodeDetector" in window) { try { detector = new BarcodeDetector({ formats: ["qr_code"] }); } catch (e) {} }
+
+  async function openScanner() {
+    $("scanner").classList.remove("hidden");
+    $("scanMsg").textContent = "Point your camera at the code the booth shows you.";
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      const v = $("video"); v.srcObject = stream; await v.play();
+      scanning = true; tick();
+    } catch (e) {
+      $("scanMsg").textContent = "Camera unavailable. Allow camera access, or type the code instead.";
+    }
+  }
+  function closeScanner() {
+    scanning = false;
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    stream = null;
+    $("scanner").classList.add("hidden");
+  }
+  async function tick() {
+    if (!scanning) return;
+    const v = $("video");
+    if (v.readyState >= 2) {
+      let text = null;
+      try {
+        if (detector) { const r = await detector.detect(v); if (r.length) text = r[0].rawValue; }
+        else if (window.jsQR) {
+          const c = $("canvas"), w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 640 / Math.max(w, h));
+          c.width = w * s; c.height = h * s;
+          const ctx = c.getContext("2d", { willReadFrequently: true });
+          ctx.drawImage(v, 0, 0, c.width, c.height);
+          const r = jsQR(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height, { inversionAttempts: "dontInvert" });
+          if (r) text = r.data;
+        }
+      } catch (e) {}
+      if (text) { if (navigator.vibrate) navigator.vibrate(60); closeScanner(); await claim(text); return; }
+    }
+    requestAnimationFrame(tick);
+  }
+  $("scanBtn").onclick = openScanner;
+  $("scanClose").onclick = closeScanner;
+  $("typeCode").onclick = async () => {
+    const c = prompt("Enter the booth code:");
+    if (c) { closeScanner(); await claim(c.trim()); }
+  };
+
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && token && passport) loadPassport(); });
+
+  // --- start ---
+  if (token) await openPassport();
+  else show("vRegister");
+})().catch((err) => {
+  console.error(err);
+  const box = document.createElement("div");
+  box.className = "card"; box.setAttribute("role", "alert");
+  box.style.cssText = "max-width:520px;margin:24px auto;text-align:center";
+  box.innerHTML = '<h2>Something went wrong</h2><p class="muted"></p><button class="btn" type="button" onclick="location.reload()">Reload page</button>';
+  box.querySelector("p").textContent = (err && err.message) || String(err);
+  (document.getElementById("page") || document.querySelector("main") || document.body).replaceChildren(box);
+});
+</script>
+</body>
+</html>
