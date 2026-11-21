@@ -17,7 +17,7 @@ Admins run everything from `admin.html`, and winners are drawn live on the big-s
 The database (Supabase project `events-passport`, Canada Central) is already set up with all tables,
 security rules and the `logos` storage bucket.
 
-## 0. Add the AIA Canada logo
+## 0. Add the Simplicity
 
 Upload the logo to the repo as `assets/aia-canada-logo.png` (on GitHub: open the `assets` folder → **Add file → Upload files**). It appears on the attendee header, admin console, big screen, poster and QR cards. Until it's there, those spots are simply left blank.
 
